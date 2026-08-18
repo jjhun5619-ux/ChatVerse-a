@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🧠 Deep-Co</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#0b0b1a;color:#f0f0f5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        ::-webkit-scrollbar{width:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.3);border-radius:4px}
+
+        .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);backdrop-filter:blur(20px);z-index:9999;display:flex;justify-content:center;align-items:center;flex-direction:column;transition:.5s}
+        .login-overlay.hidden{opacity:0;pointer-events:none}
+        .login-box{background:rgba(22,22,31,0.8);border:1px solid rgba(167,139,250,0.15);border-radius:20px;padding:40px 32px;max-width:380px;width:90%;text-align:center}
+        .login-box .icon{font-size:56px;margin-bottom:12px;display:block}
+        .login-box h2{color:#a78bfa;font-size:22px;margin-bottom:6px}
+        .login-box p{color:#888;font-size:13px;margin-bottom:24px}
+        .login-box input{width:100%;padding:14px 16px;margin-bottom:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#f0f0f5;font-size:15px;outline:none}
+        .login-box input:focus{border-color:rgba(167,139,250,0.3)}
+        .login-box .btn-login{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:.2s}
+        .login-box .btn-login:active{transform:scale(.95)}
+        .login-box .error{color:#f87171;font-size:12px;margin-top:8px;min-height:20px}
+
+        header{background:rgba(10,10,25,0.95);padding:8px 16px;border-bottom:1px solid rgba(167,139,250,0.1);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+        header h1{font-size:18px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;cursor:pointer}
+        .header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .badge{font-size:9px;padding:2px 10px;border-radius:12px;font-weight:600;background:rgba(167,139,250,0.12);color:#a78bfa}
+        .badge-gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1a2e;font-weight:700}
+        .badge-premium{background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-weight:700}
+        .badge-save{background:rgba(52,211,153,0.15);color:#34d399}
+
+        .main-content{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
+        .page{display:none}
+        .page.active{display:block}
+
+        .card{background:rgba(22,22,31,0.6);border:1px solid rgba(167,139,250,0.1);border-radius:12px;padding:14px;margin-bottom:10px}
+        .card h3{color:#a78bfa;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+        input,textarea{width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#f0f0f5;font-size:13px;outline:none;margin-bottom:6px;font-family:inherit}
+        button{padding:6px 14px;border-radius:8px;border:none;font-weight:600;font-size:12px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:4px}
+        button:active{transform:scale(.95)}
+        .btn-p{background:#7c3aed;color:#fff}
+        .btn-d{background:rgba(239,68,68,0.2);color:#f87171}
+        .btn-g{background:rgba(52,211,153,0.2);color:#34d399}
+        .btn-creator{background:linear-gradient(135deg,#fbbf24,#f43f5e);color:#fff}
+        .btn-premium{background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;animation:pulse-btn 2s infinite}
+        @keyframes pulse-btn{0%,100%{box-shadow:0 0 10px rgba(236,72,153,0.2)}50%{box-shadow:0 0 30px rgba(236,72,153,0.5)}}
+        .btn-full{width:100%;padding:10px;margin-top:6px;border-radius:10px;background:#7c3aed;color:#fff;font-size:13px;display:flex;justify-content:center;align-items:center;gap:6px}
+
+        .token-display{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.1);border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
+        .token-item{display:flex;align-items:center;gap:6px}
+        .token-item .icon{font-size:20px}
+        .token-item .value{font-size:16px;font-weight:700}
+        .token-item .value.gold{color:#fbbf24}
+        .token-item .value.premium{color:#ec4899}
+        .token-item .label{font-size:10px;color:#888}
+
+        .world-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .world-card{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+        .world-card:hover{background:rgba(22,22,31,0.6);border-color:rgba(167,139,250,0.2)}
+        .world-card .icon{font-size:32px;display:block;margin-bottom:4px}
+        .world-card .name{font-size:13px;font-weight:700;color:#a78bfa}
+        .world-card .desc{font-size:10px;color:#888}
+        .world-card .count{font-size:10px;color:#555;margin-top:4px}
+        .world-card .del{position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.1);color:#f87171;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer}
+
+        .char-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .char-card{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s}
+        .char-card:hover{background:rgba(22,22,31,0.6);border-color:rgba(167,139,250,0.2)}
+        .char-card .avatar{width:60px;height:60px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(135deg,#7c3aed,#ec4899);overflow:hidden}
+        .char-card .avatar img{width:100%;height:100%;object-fit:cover}
+        .char-card .name{font-size:13px;font-weight:700;color:#a78bfa}
+        .char-card .desc{font-size:10px;color:#888}
+        .char-card .lv{font-size:10px;color:#fbbf24}
+
+        #chatPanel{display:none;flex-direction:column;flex:1;overflow:hidden;position:fixed;top:60px;left:0;right:0;bottom:80px;background:#0b0b1a;z-index:50}
+        #chatPanel.active{display:flex}
+        .chat-h{padding:8px 12px;background:rgba(18,18,30,0.6);border-bottom:1px solid rgba(255,255,255,0.03);display:flex;justify-content:space-between;flex-wrap:wrap;font-size:11px;color:#aaa;flex-shrink:0;gap:4px}
+        .mode-selector{display:flex;gap:4px;flex-wrap:wrap}
+        .mode-selector button{font-size:9px;padding:2px 10px;border-radius:10px;background:rgba(255,255,255,0.03);color:#888;border:1px solid transparent;cursor:pointer;transition:.2s}
+        .mode-selector button:hover{background:rgba(167,139,250,0.1);color:#a78bfa}
+        .mode-selector button.active{background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.2)}
+        .mode-selector button.premium{color:#ec4899}
+        .mode-selector button.premium.active{background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.2)}
+
+        .chat-area{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}
+        .msg{max-width:92%;padding:10px 16px;border-radius:14px;font-size:14px;line-height:1.8;animation:fadeIn .3s ease;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .msg.user{align-self:flex-end;background:linear-gradient(135deg,#7c3aed,#6d28d9);border-bottom-right-radius:4px;color:#fff}
+        .msg.ai{align-self:flex-start;background:rgba(22,22,31,0.8);border:1px solid rgba(167,139,250,0.12);border-left:3px solid #a78bfa;border-bottom-left-radius:4px}
+        .msg.ai .n{color:#a78bfa;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+        .msg.ai .n .tag{font-size:8px;padding:2px 10px;border-radius:12px;font-weight:600}
+        .msg.ai .n .tag.deepass{background:rgba(244,63,94,0.2);color:#f43f5e}
+        .msg.ai .n .tag.groq{background:rgba(52,211,153,0.2);color:#34d399}
+        .msg.ai .n .tag.openai{background:rgba(167,139,250,0.2);color:#a78bfa}
+        .msg.ai .n .tag.mistral{background:rgba(251,191,36,0.2);color:#fbbf24}
+        .msg.ai .n .tag.premium{background:rgba(236,72,153,0.2);color:#ec4899}
+        .msg.ai .n .tag.image{background:rgba(52,211,153,0.2);color:#34d399}
+        .msg.sys{align-self:center;color:#888;font-size:11px;background:rgba(255,255,255,0.02);padding:4px 20px;border-radius:16px;text-align:center}
+        .msg.mission{align-self:center;color:#fbbf24;font-size:11px;background:rgba(251,191,36,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.06)}
+        .msg.error{align-self:center;color:#f87171;font-size:11px;background:rgba(239,68,68,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(239,68,68,0.06)}
+
+        .bar{display:flex;gap:6px;padding:8px 12px;background:rgba(18,18,30,0.6);border-top:1px solid rgba(255,255,255,0.03);flex-shrink:0}
+        .bar input{flex:1;margin:0;font-size:13px;padding:10px 16px;border-radius:24px}
+        .bar button{padding:10px 20px;border-radius:24px;font-size:13px}
+
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,25,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(167,139,250,0.1);display:flex;justify-content:space-around;padding:8px 0 12px 0;z-index:100}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#666;font-size:10px;cursor:pointer;transition:.2s;padding:4px 16px;border:none;background:none;font-family:inherit}
+        .nav-item .icon{font-size:24px}
+        .nav-item.active{color:#a78bfa}
+        .nav-item .create-btn{background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;margin-top:-20px;box-shadow:0 4px 20px rgba(124,58,237,0.4)}
+
+        @media(max-width:480px){.world-grid{grid-template-columns:1fr}.char-grid{grid-template-columns:1fr 1fr;gap:6px}.char-card .avatar{width:44px;height:44px;font-size:22px}.token-display{flex-direction:column;align-items:flex-start;gap:4px}#chatPanel{top:55px;bottom:70px}}
+    </style>
+</head>
+<body>
+
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <span class="icon">🧠</span>
+            <h2>Deep-Co</h2>
+            <p>깊은 AI 대화</p>
+            <input type="text" id="loginId" placeholder="이름" onkeydown="if(event.key==='Enter')login()">
+            <input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')login()">
+            <button class="btn-login" id="loginBtn" onclick="login()">🚀 시작</button>
+            <div class="error" id="loginError"></div>
+        </div>
+    </div>
+
+    <header>
+        <h1 onclick="switchPage('home')">🧠 Deep-Co</h1>
+        <div class="header-right">
+            <span class="badge" id="userBadge">👤 게스트</span>
+            <span class="badge badge-gold" id="goldDisplay">🪙0</span>
+            <span class="badge badge-premium" id="premiumDisplay">⚡0</span>
+            <span class="badge badge-save" id="saveBadge">💾 저장됨</span>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="page active" id="page-home">
+            <div style="text-align:center;padding:10px 0;">
+                <span style="font-size:48px;">🧠</span>
+                <h2 style="font-size:20px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Deep-Co</h2>
+                <p style="color:#888;font-size:13px;">깊은 AI 대화</p>
+            </div>
+            <div class="token-display">
+                <div class="token-item"><span class="icon">🪙</span><span class="value gold" id="goldValue">0</span><span class="label">골드</span></div>
+                <div class="token-item"><span class="icon">⚡</span><span class="value premium" id="premiumValue">0</span><span class="label">프리미엄</span></div>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🌍</span> 세계관</h3>
+                <div class="world-grid" id="worldGrid"></div>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🎯</span> 미션</h3>
+                <div id="missionList"></div>
+            </div>
+        </div>
+
+        <div class="page" id="page-world">
+            <div class="card">
+                <h3 id="worldTitle">🌍 세계관</h3>
+                <p id="worldDesc" style="color:#888;font-size:13px;margin-bottom:8px;"></p>
+                <div class="char-grid" id="worldCharGrid"></div>
+                <button class="btn-full btn-creator" onclick="showAddChar()">➕ 캐릭터 추가</button>
+            </div>
+        </div>
+
+        <div class="page" id="page-create">
+            <div class="card">
+                <h3><span class="icon">✨</span> 캐릭터 만들기</h3>
+                <select id="charWorldSelect" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#f0f0f5;font-size:13px;outline:none;margin-bottom:6px;font-family:inherit;"></select>
+                <input id="charName" placeholder="캐릭터 이름">
+                <input id="charEmoji" placeholder="이모지">
+                <textarea id="charDesc" rows="2" placeholder="설명"></textarea>
+                <input id="charPersonality" placeholder="성격">
+                <button class="btn-full btn-creator" onclick="createCharacter()">👑 캐릭터 생성</button>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🌍</span> 세계관 만들기</h3>
+                <input id="worldName" placeholder="세계관 이름">
+                <textarea id="worldDesc" rows="2" placeholder="설명"></textarea>
+                <button class="btn-full btn-creator" onclick="createWorld()">🌍 세계관 생성</button>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🎨</span> 이미지 생성</h3>
+                <input id="imagePrompt" placeholder="이미지 설명 (예: 마법사 모자 쓴 고양이)">
+                <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <button class="btn-full btn-g" onclick="generateImage('normal')" style="flex:1;">🪙 일반 (5골드)</button>
+                    <button class="btn-full btn-premium" onclick="generateImage('premium')" style="flex:1;">⚡ 프리미엄 (1토큰)</button>
+                </div>
+                <div id="imagePreview" style="text-align:center;padding:10px;color:#888;font-size:12px;border:1px dashed rgba(255,255,255,0.05);border-radius:8px;min-height:60px;">
+                    🎨 이미지가 여기에 표시됩니다
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page-profile">
+            <div class="card">
+                <h3><span class="icon">👤</span> 내 정보</h3>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+                    <span style="font-size:13px;color:#ccc;">이름</span>
+                    <span style="font-size:13px;color:#f0f0f5;" id="profileName">-</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                    <span style="font-size:13px;color:#ccc;">역할</span>
+                    <span style="font-size:13px;color:#f0f0f5;" id="profileRole">일반</span>
+                </div>
+                <button class="btn-full btn-d" onclick="logout()" style="margin-top:8px;">🚪 로그아웃</button>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🔌</span> API 설정</h3>
+                <input id="groqKey" placeholder="Groq API Key (gsk_...)" type="password">
+                <input id="openaiKey" placeholder="OpenAI API Key (sk-...)" type="password">
+                <input id="mistralKey" placeholder="Mistral API Key" type="password">
+                <input id="stabilityKey" placeholder="Stability API Key (sk-...)" type="password">
+                <button class="btn-full btn-g" onclick="saveKeys()">💾 API 키 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('home')"><span class="icon">🏠</span> 홈</button>
+        <button class="nav-item" onclick="switchPage('create')"><span class="create-btn">+</span> 제작</button>
+        <button class="nav-item" onclick="switchPage('profile')"><span class="icon">👤</span> 나</button>
+    </div>
+
+    <div id="chatPanel">
+        <div class="chat-h">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span id="chatTitle">💬 대화</span>
+                <span id="chatInfo" style="color:#888;font-size:9px;">👤 <span id="currentCharName">-</span></span>
+                <span id="chatModeDisplay" style="font-size:10px;padding:2px 10px;border-radius:12px;background:rgba(244,63,94,0.2);color:#f43f5e;">📚 딥패스</span>
+            </div>
+            <div class="mode-selector" id="chatModeSelector">
+                <button class="active" data-mode="deepass" onclick="setChatMode('deepass')">📚 딥패스</button>
+                <button data-mode="groq" onclick="setChatMode('groq')">⚡ Groq</button>
+                <button data-mode="openai" onclick="setChatMode('openai')">🧠 OpenAI</button>
+                <button data-mode="mistral" onclick="setChatMode('mistral')">🌍 Mistral</button>
+                <button data-mode="premium" class="premium" onclick="setChatMode('premium')">⚡ 프리미엄</button>
+            </div>
+        </div>
+        <div id="chat" class="chat-area">
+            <div class="msg sys">💬 캐릭터를 선택하고 대화를 시작하세요</div>
+        </div>
+        <div class="bar">
+            <input id="chatInput" placeholder="메시지..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+            <button class="btn-p" onclick="sendChatMsg()">↑</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🧠 Deep-Co - 프리미엄/일반 이미지 구분
+        // ============================================================
+
+        // ===== 데이터 =====
+        let worlds = JSON.parse(localStorage.getItem('dc_worlds') || '[]');
+        let chars = JSON.parse(localStorage.getItem('dc_chars') || '[]');
+        let gold = parseInt(localStorage.getItem('dc_gold')) || 100;
+        let premium = parseInt(localStorage.getItem('dc_premium')) || 0;
+        let library = JSON.parse(localStorage.getItem('deepass_library') || '[]');
+        let chatHistory = [];
+        let currentWorld = null;
+        let currentChar = null;
+        let currentUser = null;
+        let isAdmin = false;
+        let currentMode = 'deepass';
+        let chatCount = 0;
+
+        // ===== 미션 =====
+        let missions = JSON.parse(localStorage.getItem('dc_missions') || '[]');
+        const MISSION_TEMPLATES = [
+            { id: 'first_chat', name: '📝 첫 대화', desc: '첫 번째 대화', condition: { type: 'chat', count: 1 }, reward: { gold: 10,
+                    premium: 0 } },
+            { id: 'chat_10', name: '💬 대화 10번', desc: '채팅 10회', condition: { type: 'chat', count: 10 }, reward: { gold: 30,
+                    premium: 0 } },
+            { id: 'chat_50', name: '🔥 대화 50번', desc: '채팅 50회', condition: { type: 'chat', count: 50 }, reward: { gold: 100,
+                    premium: 5 } },
+            { id: 'chat_100', name: '⭐ 전문가', desc: '채팅 100회', condition: { type: 'chat', count: 100 }, reward: { gold: 200,
+                    premium: 10 } },
+            { id: 'create_char', name: '👤 캐릭터 생성', desc: '첫 캐릭터', condition: { type: 'char', count: 1 }, reward: { gold: 20,
+                    premium: 0 } },
+            { id: 'create_world', name: '🌍 세계관 생성', desc: '첫 세계관', condition: { type: 'world', count: 1 }, reward: { gold: 15,
+                    premium: 0 } },
+            { id: 'learn_5', name: '📚 학습 5개', desc: '도서관에 5개 추가', condition: { type: 'learn', count: 5 }, reward: { gold: 25,
+                    premium: 0 } },
+        ];
+
+        function initMissions() {
+            if (missions.length === 0) {
+                missions = MISSION_TEMPLATES.map(m => ({ ...m, completed: false, claimed: false, progress: 0,
+                    maxProgress: m.condition.count }));
+                localStorage.setItem('dc_missions', JSON.stringify(missions));
+            }
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('missionList');
+            if (!missions.length) {
+                container.innerHTML = '<div style="color:#555;font-size:12px;">미션이 없어요</div>';
+                return;
+            }
+            container.innerHTML = missions.map(m => {
+                const status = m.completed ? '✅ 완료!' : m.claimed ? '🎁 수령' : `${m.progress}/${m.maxProgress}`;
+                const cls = m.completed ? 'done' : m.claimed ? 'pending' : 'progress';
+                return `
+                    <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:2px;font-size:12px;">
+                        <span>${m.name}</span>
+                        <span style="color:${m.completed ? '#34d399' : m.claimed ? '#555' : '#fbbf24'}">${status}</span>
+                        <span style="color:#fbbf24;">+${m.reward.gold}🪙 ${m.reward.premium>0?'+'+m.reward.premium+'⚡':''}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function checkMissions() {
+            const stats = {
+                chat: chatHistory.length,
+                chars: chars.length,
+                worlds: worlds.length,
+                learn: library.length
+            };
+            let completedAny = false;
+            for (let m of missions) {
+                if (m.claimed) continue;
+                let progress = 0;
+                if (m.condition.type === 'chat') progress = stats.chat;
+                else if (m.condition.type === 'char') progress = stats.chars;
+                else if (m.condition.type === 'world') progress = stats.worlds;
+                else if (m.condition.type === 'learn') progress = stats.learn;
+                m.progress = Math.min(progress, m.maxProgress);
+                if (progress >= m.maxProgress && !m.completed) {
+                    m.completed = true;
+                    gold += m.reward.gold;
+                    premium += m.reward.premium;
+                    localStorage.setItem('dc_gold', String(gold));
+                    localStorage.setItem('dc_premium', String(premium));
+                    localStorage.setItem('dc_missions', JSON.stringify(missions));
+                    addChatMsg('🎯 미션', `✅ "${m.name}" 완료! +${m.reward.gold}🪙 ${m.reward.premium>0?'+'+m.reward.premium+'⚡':''}`, 'mission');
+                    completedAny = true;
+                }
+            }
+            renderMissions();
+            updateUI();
+            return completedAny;
+        }
+
+        // ============================================================
+        // ===== 로그인 =====
+        // ============================================================
+
+        function autoLogin() {
+            const saved = localStorage.getItem('dc_user');
+            if (!saved) return false;
+            try {
+                const user = JSON.parse(saved);
+                currentUser = user.id;
+                isAdmin = user.admin || false;
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('userBadge').textContent = isAdmin ? '👑 ' + user.id : '👤 ' + user.id;
+                if (isAdmin) {
+                    document.getElementById('userBadge').style.background = 'rgba(251,191,36,0.15)';
+                    document.getElementById('userBadge').style.color = '#fbbf24';
+                }
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function login() {
+            const id = document.getElementById('loginId').value.trim();
+            const pw = document.getElementById('loginPw').value.trim();
+            const err = document.getElementById('loginError');
+            if (!id || !pw) { err.textContent = '⚠️ 입력하세요'; return; }
+            if (id === 'admin' && pw === '1234') {
+                currentUser = 'admin';
+                isAdmin = true;
+                localStorage.setItem('dc_user', JSON.stringify({ id: 'admin', admin: true }));
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('userBadge').textContent = '👑 관리자';
+                document.getElementById('userBadge').style.background = 'rgba(251,191,36,0.15)';
+                document.getElementById('userBadge').style.color = '#fbbf24';
+                initData();
+                renderAll();
+                alert('👑 관리자님 환영합니다!');
+                switchPage('home');
+                return;
+            }
+            const users = JSON.parse(localStorage.getItem('dc_users') || '{}');
+            if (users[id]) {
+                if (users[id].pw === pw) {
+                    currentUser = id;
+                    isAdmin = false;
+                    localStorage.setItem('dc_user', JSON.stringify({ id: id, admin: false }));
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    document.getElementById('userBadge').textContent = '👤 ' + id;
+                    initData();
+                    renderAll();
+                    switchPage('home');
+                } else { err.textContent = '❌ 비밀번호 틀림'; }
+            } else {
+                users[id] = { pw: pw };
+                localStorage.setItem('dc_users', JSON.stringify(users));
+                currentUser = id;
+                isAdmin = false;
+                localStorage.setItem('dc_user', JSON.stringify({ id: id, admin: false }));
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('userBadge').textContent = '👤 ' + id;
+                initData();
+                renderAll();
+                alert('✅ "' + id + '" 가입 완료!');
+                switchPage('home');
+            }
+        }
+
+        function logout() {
+            if (!confirm('로그아웃?')) return;
+            currentUser = null;
+            isAdmin = false;
+            localStorage.removeItem('dc_user');
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('userBadge').textContent = '👤 게스트';
+            document.getElementById('userBadge').style.background = '';
+            document.getElementById('userBadge').style.color = '';
+            document.getElementById('loginId').value = '';
+            document.getElementById('loginPw').value = '';
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('chatPanel').classList.remove('active');
+            switchPage('home');
+        }
+
+        // ============================================================
+        // ===== 데이터 =====
+        // ============================================================
+
+        const INITIAL_KNOWLEDGE = [
+            { title: '인공지능 기본 개념', content: '인공지능(AI)은 인간의 학습, 추론, 지각 능력을 모방한 컴퓨터 시스템입니다.' },
+            { title: '자연어 처리 기초', content: '자연어 처리는 인간의 언어를 컴퓨터가 이해하고 생성하도록 하는 기술입니다.' },
+            { title: '딥러닝 개요', content: '딥러닝은 인공신경망을 여러 층으로 쌓아 복잡한 패턴을 학습하는 머신러닝의 한 분야입니다.' },
+            { title: '대화형 AI의 원리', content: '대화형 AI는 사용자의 입력을 이해하고 적절한 응답을 생성합니다.' },
+            { title: 'Deep-Co', content: 'Deep-Co는 깊은 AI 대화를 나누는 공간입니다.' }
+        ];
+
+        const INITIAL_CHARS = [
+            { id: 1, name: '마법사', emoji: '🧙', personality: '지혜롭고 신비로움', level: 1, chatCount: 0 },
+            { id: 2, name: '용사', emoji: '⚔️', personality: '용감하고 책임감 강함', level: 1, chatCount: 0 },
+            { id: 3, name: '해커', emoji: '💻', personality: '냉철하고 분석적', level: 1, chatCount: 0 },
+        ];
+
+        function initData() {
+            if (worlds.length === 0) {
+                worlds.push({ name: '판타지 월드', desc: '마법과 모험이 가득한 세계' });
+                localStorage.setItem('dc_worlds', JSON.stringify(worlds));
+            }
+            if (chars.length === 0) {
+                chars = JSON.parse(JSON.stringify(INITIAL_CHARS));
+                localStorage.setItem('dc_chars', JSON.stringify(chars));
+            }
+            if (library.length === 0) {
+                library = INITIAL_KNOWLEDGE.map(item => ({ ...item, source: 'system-init', time: new Date().toISOString() }));
+                localStorage.setItem('deepass_library', JSON.stringify(library));
+            }
+            if (!localStorage.getItem('dc_gold')) localStorage.setItem('dc_gold', '100');
+            if (!localStorage.getItem('dc_premium')) localStorage.setItem('dc_premium', '0');
+            gold = parseInt(localStorage.getItem('dc_gold')) || 100;
+            premium = parseInt(localStorage.getItem('dc_premium')) || 0;
+            initMissions();
+            updateUI();
+        }
+
+        function saveAll() {
+            localStorage.setItem('dc_worlds', JSON.stringify(worlds));
+            localStorage.setItem('dc_chars', JSON.stringify(chars));
+            localStorage.setItem('dc_gold', String(gold));
+            localStorage.setItem('dc_premium', String(premium));
+            localStorage.setItem('deepass_library', JSON.stringify(library));
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('goldValue').textContent = gold;
+            document.getElementById('premiumValue').textContent = premium;
+            document.getElementById('goldDisplay').textContent = '🪙' + gold;
+            document.getElementById('premiumDisplay').textContent = '⚡' + premium;
+            renderWorlds();
+            renderMissions();
+        }
+
+        // ============================================================
+        // ===== 세계관 =====
+        // ============================================================
+
+        function renderWorlds() {
+            const grid = document.getElementById('worldGrid');
+            if (!worlds.length) {
+                grid.innerHTML = '<div style="grid-column:1/3;text-align:center;color:#555;padding:20px;">🌍 세계관이 없어요</div>';
+                return;
+            }
+            grid.innerHTML = worlds.map((w, i) => `
+                <div class="world-card" onclick="viewWorld(${i})">
+                    <span class="icon">🌍</span>
+                    <div class="name">${esc(w.name)}</div>
+                    <div class="desc">${esc(w.desc || '')}</div>
+                    <div class="count">👥 ${chars.filter(c=>c.worldId===i).length}명</div>
+                    <button class="del" onclick="event.stopPropagation();deleteWorld(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function viewWorld(i) {
+            currentWorld = i;
+            const w = worlds[i];
+            document.getElementById('worldTitle').textContent = '🌍 ' + w.name;
+            document.getElementById('worldDesc').textContent = w.desc || '';
+            const grid = document.getElementById('worldCharGrid');
+            const worldChars = chars.filter(c => c.worldId === i);
+            if (!worldChars.length) {
+                grid.innerHTML = '<div style="grid-column:1/3;text-align:center;color:#555;padding:20px;">👤 캐릭터가 없어요</div>';
+            } else {
+                grid.innerHTML = worldChars.map((c, idx) => `
+                    <div class="char-card" onclick="selectChar(${chars.indexOf(c)})">
+                        <div class="avatar" style="background:${c.color || '#7c3aed'};">${c.emoji || '🧙'}${c.avatar ? '<img src="'+c.avatar+'">' : ''}</div>
+                        <div class="name">${esc(c.name)}</div>
+                        <div class="desc">${esc(c.desc || '')}</div>
+                        <span style="font-size:10px;color:#fbbf24;">Lv.${c.level || 1}</span>
+                    </div>
+                `).join('');
+            }
+            switchPage('world');
+        }
+
+        function deleteWorld(i) {
+            if (!confirm(`🌍 "${worlds[i].name}" 세계관을 삭제하시겠습니까?`)) return;
+            const wid = i;
+            chars = chars.filter(c => c.worldId !== wid);
+            worlds.splice(i, 1);
+            if (currentWorld === wid) currentWorld = null;
+            saveAll();
+            renderAll();
+            addChatMsg('시스템', `🗑️ "${worlds[i]?.name || '세계관'}" 삭제 완료`, 'sys');
+        }
+
+        function createWorld() {
+            const name = document.getElementById('worldName').value.trim();
+            const desc = document.getElementById('worldDesc').value.trim();
+            if (!name) { alert('🌍 이름을 입력하세요!'); return; }
+            worlds.push({ name, desc: desc || '' });
+            document.getElementById('worldName').value = '';
+            document.getElementById('worldDesc').value = '';
+            saveAll();
+            renderAll();
+            alert('✅ "' + name + '" 세계관 생성!');
+            updateCharSelect();
+            switchPage('home');
+            checkMissions();
+        }
+
+        // ============================================================
+        // ===== 캐릭터 =====
+        // ============================================================
+
+        function selectChar(i) {
+            currentChar = chars[i];
+            document.getElementById('chatPanel').classList.add('active');
+            document.getElementById('currentCharName').textContent = currentChar.emoji + ' ' + currentChar.name;
+            const chatArea = document.getElementById('chat');
+            chatArea.innerHTML = '';
+            addChatMsg('시스템', `💬 ${currentChar.emoji} ${currentChar.name}과 대화 시작`, 'sys');
+            addChatMsg('시스템', `🎭 ${currentChar.personality || '평범한 성격'}`, 'sys');
+            addChatMsg(currentChar.name, '안녕! 만나서 반가워! 😊', 'ai');
+            document.getElementById('chatInput').focus();
+            switchPage('chat');
+        }
+
+        function createCharacter() {
+            const name = document.getElementById('charName').value.trim();
+            const emoji = document.getElementById('charEmoji').value.trim() || '🧙';
+            const desc = document.getElementById('charDesc').value.trim();
+            const personality = document.getElementById('charPersonality').value.trim() || '평범한';
+            const worldId = parseInt(document.getElementById('charWorldSelect').value);
+            if (!name) { alert('👤 이름을 입력하세요!'); return; }
+            if (isNaN(worldId) || worldId < 0 || worldId >= worlds.length) { alert('🌍 세계관 선택!'); return; }
+            const colors = ['#7c3aed', '#ec4899', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4'];
+            chars.push({
+                id: Date.now(),
+                name,
+                desc: desc || '',
+                emoji: emoji,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                worldId: worldId,
+                personality: personality || '평범한',
+                avatar: null,
+                level: 1,
+                chatCount: 0
+            });
+            document.getElementById('charName').value = '';
+            document.getElementById('charEmoji').value = '';
+            document.getElementById('charDesc').value = '';
+            document.getElementById('charPersonality').value = '';
+            saveAll();
+            renderAll();
+            alert('✅ "' + name + '" 캐릭터 생성!');
+            if (currentWorld !== null) viewWorld(currentWorld);
+            else switchPage('home');
+            checkMissions();
+        }
+
+        function updateCharSelect() {
+            const select = document.getElementById('charWorldSelect');
+            select.innerHTML = worlds.map((w, i) => '<option value="' + i + '">' + esc(w.name) + '</option>').join('');
+        }
+
+        function showAddChar() {
+            if (currentWorld === null) { alert('🌍 먼저 세계관을 선택하세요!'); return; }
+            document.getElementById('charWorldSelect').value = currentWorld;
+            switchPage('create');
+        }
+
+        // ============================================================
+        // ===== API =====
+        // ============================================================
+
+        const PROXY_LIST = [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/'
+        ];
+        let proxyIndex = 0;
+
+        async function callAPI(api, prompt) {
+            const keyMap = {
+                groq: document.getElementById('groqKey').value.trim() || localStorage.getItem('groq_key'),
+                openai: document.getElementById('openaiKey').value.trim() || localStorage.getItem('openai_key'),
+                mistral: document.getElementById('mistralKey').value.trim() || localStorage.getItem('mistral_key')
+            };
+            const urlMap = {
+                groq: 'https://api.groq.com/openai/v1/chat/completions',
+                openai: 'https://api.openai.com/v1/chat/completions',
+                mistral: 'https://api.mistral.ai/v1/chat/completions'
+            };
+            const modelMap = {
+                groq: 'llama-3.1-8b-instant',
+                openai: 'gpt-4o-mini',
+                mistral: 'mistral-small-latest'
+            };
+
+            const key = keyMap[api];
+            if (!key) throw new Error(api + ' API 키가 없습니다');
+
+            for (let attempt = 0; attempt < PROXY_LIST.length; attempt++) {
+                const proxy = PROXY_LIST[proxyIndex % PROXY_LIST.length];
+                proxyIndex++;
+                try {
+                    const proxyUrl = proxy + encodeURIComponent(urlMap[api]);
+                    const response = await fetch(proxyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + key,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: modelMap[api],
+                            messages: [{ role: 'user', content: prompt }],
+                            temperature: 0.8,
+                            max_tokens: 500
+                        })
+                    });
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error?.message || `HTTP ${response.status}`);
+                    }
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                } catch (e) {
+                    console.warn(`⚠️ 프록시 ${proxy} 실패:`, e.message);
+                    if (attempt === PROXY_LIST.length - 1) throw e;
+                }
+            }
+            throw new Error('모든 프록시 실패');
+        }
+
+        // ============================================================
+        // ===== 이미지 생성 =====
+        // ============================================================
+
+        async function generateImage(type) {
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            if (!prompt) { alert('🎨 이미지 설명을 입력하세요!'); return; }
+
+            const stabilityKey = document.getElementById('stabilityKey').value.trim() || localStorage.getItem(
+            'stability_key');
+            if (!stabilityKey) { alert('🔑 Stability AI 키가 없어요!'); return; }
+
+            const cost = type === 'premium' ? { premium: 1, gold: 0 } : { premium: 0, gold: 5 };
+            if (gold < cost.gold) { alert(`🪙 골드 부족! (${cost.gold}개 필요)`); return; }
+            if (premium < cost.premium) { alert(`⚡ 프리미엄 부족! (${cost.premium}개 필요)`); return; }
+
+            gold -= cost.gold;
+            premium -= cost.premium;
+            saveAll();
+
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '⏳ 이미지 생성 중...';
+
+            try {
+                const proxy = PROXY_LIST[0];
+                const url = proxy + encodeURIComponent('https://api.stability.ai/v2beta/stable-image/generate/sd3');
+                const formData = new URLSearchParams();
+                formData.append('prompt', prompt);
+                formData.append('output_format', 'png');
+                formData.append('model', 'sd3-large');
+                formData.append('aspect_ratio', '1:1');
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + stabilityKey,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('이미지 생성 실패');
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+
+                preview.innerHTML =
+                    `<img src="${imageUrl}" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">`;
+                addChatMsg('🎨 AI', `✨ ${type === 'premium' ? '⚡ 프리미엄' : '🪙 일반'} 이미지 생성 완료!`, 'sys');
+
+                if (currentChar) {
+                    currentChar.avatar = imageUrl;
+                    saveAll();
+                }
+                updateUI();
+
+            } catch (e) {
+                preview.innerHTML = '❌ 생성 실패: ' + e.message;
+                gold += cost.gold;
+                premium += cost.premium;
+                saveAll();
+                updateUI();
+            }
+        }
+
+        // ============================================================
+        // ===== 채팅 =====
+        // ============================================================
+
+        function setChatMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('#chatModeSelector button').forEach(b => {
+                b.classList.toggle('active', b.dataset.mode === mode);
+            });
+            const names = {
+                deepass: '📚 딥패스',
+                groq: '⚡ Groq',
+                openai: '🧠 OpenAI',
+                mistral: '🌍 Mistral',
+                premium: '⚡ 프리미엄'
+            };
+            document.getElementById('chatModeDisplay').textContent = names[mode] || mode;
+            document.getElementById('chatModeDisplay').style.background = mode === 'premium' ? 'rgba(236,72,153,0.2)' :
+                'rgba(244,63,94,0.2)';
+            document.getElementById('chatModeDisplay').style.color = mode === 'premium' ? '#ec4899' : '#f43f5e';
+            addChatMsg('시스템', `🔄 ${names[mode] || mode} 모드로 전환`, 'sys');
+        }
+
+        function addChatMsg(name, text, type) {
+            const chat = document.getElementById('chat');
+            const d = document.createElement('div');
+            d.className = 'msg ' + type;
+            if (type === 'ai') {
+                const tagMap = {
+                    deepass: '<span class="tag deepass">📚 딥패스</span>',
+                    groq: '<span class="tag groq">⚡ Groq</span>',
+                    openai: '<span class="tag openai">🧠 OpenAI</span>',
+                    mistral: '<span class="tag mistral">🌍 Mistral</span>',
+                    premium: '<span class="tag premium">⚡ 프리미엄</span>'
+                };
+                const tag = tagMap[currentMode] || tagMap.deepass;
+                d.innerHTML = `<div class="n">${name} ${tag}</div>${text}`;
+            } else if (type === 'user') {
+                d.textContent = '👤 ' + text;
+            } else {
+                d.textContent = text;
+            }
+            chat.appendChild(d);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function addError(text) {
+            const chat = document.getElementById('chat');
+            const d = document.createElement('div');
+            d.className = 'msg error';
+            d.textContent = '⚠️ ' + text;
+            chat.appendChild(d);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function getAIResponse(text) {
+            const lower = text.toLowerCase();
+            for (let item of library) {
+                if (lower.includes(item.title.toLowerCase()) || item.title.toLowerCase().includes(lower)) {
+                    return `📚 ${item.content}`;
+                }
+            }
+            if (lower.includes('안녕') || lower.includes('하이') || lower.includes('반가워')) {
+                const g = ['안녕! 만나서 반가워! 😊', '하이! 오늘 기분이 어때? ✨', '반가워! 무슨 일이야? 🌟'];
+                return g[Math.floor(Math.random() * g.length)];
+            }
+            if (lower.includes('고마워') || lower.includes('감사')) {
+                return '천만에! 언제든지 도와줄게! 😊';
+            }
+            const d = ['음... 그건 아직 배우지 못했어. 📚', '재미있는 질문이네! 🤔',
+                '그건 생각해본 적 없어. 네 생각은 어때? 💭'
+            ];
+            return d[Math.floor(Math.random() * d.length)];
+        }
+
+        function useCurrency(mode) {
+            const costs = {
+                deepass: { gold: 1, premium: 0 },
+                groq: { gold: 3, premium: 0 },
+                openai: { gold: 3, premium: 0 },
+                mistral: { gold: 3, premium: 0 },
+                premium: { gold: 0, premium: 1 }
+            };
+            const cost = costs[mode] || costs.deepass;
+            if (gold < cost.gold) { addError(`🪙 골드 부족! (${cost.gold}개 필요)`); return false; }
+            if (premium < cost.premium) { addError(`⚡ 프리미엄 부족! (${cost.premium}개 필요)`); return false; }
+            gold -= cost.gold;
+            premium -= cost.premium;
+            saveAll();
+            return true;
+        }
+
+        async function sendChatMsg() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+
+            if (!currentChar) {
+                addError('먼저 캐릭터를 선택하세요!');
+                return;
+            }
+
+            addChatMsg('나', text, 'user');
+            chatHistory.push({ user: text, time: new Date().toISOString() });
+
+            if (currentMode === 'premium') {
+                if (!useCurrency('premium')) return;
+                try {
+                    const response = await callAPI('groq', `[프리미엄] ${text}`);
+                    addChatMsg('⚡ ' + currentChar.name, response, 'ai');
+                } catch (e) {
+                    addError('프리미엄 오류: ' + e.message);
+                    const fallback = getAIResponse(text);
+                    addChatMsg(currentChar.name, fallback, 'ai');
+                }
+                saveAll();
+                checkMissions();
+                return;
+            }
+
+            if (!useCurrency(currentMode)) return;
+
+            try {
+                let response = '';
+                if (currentMode === 'deepass') {
+                    response = getAIResponse(text);
+                    if (response.includes('배우지 못했어')) {
+                        library.push({
+                            title: text.slice(0, 30) + '...',
+                            content: response.replace('📚 ', ''),
+                            source: 'auto-learn',
+                            time: new Date().toISOString()
+                        });
+                        saveAll();
+                    }
+                } else {
+                    response = await callAPI(currentMode, text);
+                }
+                addChatMsg(currentChar.name, response, 'ai');
+            } catch (e) {
+                addError('오류: ' + e.message);
+                const fallback = getAIResponse(text);
+                addChatMsg(currentChar.name, fallback, 'ai');
+            }
+
+            currentChar.chatCount = (currentChar.chatCount || 0) + 1;
+            currentChar.level = Math.min(Math.floor(currentChar.chatCount / 3) + 1, 10);
+            saveAll();
+            checkMissions();
+        }
+
+        function saveKeys() {
+            const g = document.getElementById('groqKey').value.trim();
+            const o = document.getElementById('openaiKey').value.trim();
+            const m = document.getElementById('mistralKey').value.trim();
+            const s = document.getElementById('stabilityKey').value.trim();
+            if (g) localStorage.setItem('groq_key', g);
+            if (o) localStorage.setItem('openai_key', o);
+            if (m) localStorage.setItem('mistral_key', m);
+            if (s) localStorage.setItem('stability_key', s);
+            alert('✅ API 키 저장 완료!');
+        }
+
+        function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;',
+                '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]); }
+
+        function renderAll() {
+            renderWorlds();
+            updateUI();
+            document.getElementById('profileName').textContent = currentUser || '게스트';
+            document.getElementById('profileRole').textContent = isAdmin ? '관리자' : '일반';
+        }
+
+        function switchPage(p) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+
+            if (p === 'chat') {
+                document.getElementById('chatPanel').classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                return;
+            }
+
+            document.getElementById('chatPanel').classList.remove('active');
+            document.getElementById('page-' + p).classList.add('active');
+            const map = { home: 0, world: 1, create: 2, profile: 3 };
+            if (map[p] !== undefined) document.querySelectorAll('.nav-item')[map[p]].classList.add('active');
+        }
+
+        // ============================================================
+        // ===== 초기화 =====
+        // ============================================================
+
+        if (!autoLogin()) {
+            document.getElementById('loginOverlay').classList.remove('hidden');
+        } else {
+            initData();
+            renderAll();
+            updateCharSelect();
+            addChatMsg('시스템', '📚 딥패스 기본 지식이 탑재되어 있어요!', 'sys');
+            addChatMsg('시스템', '🪙 골드 100개, ⚡ 프리미엄 0개 지급 완료!', 'sys');
+            addChatMsg('시스템', '💾 모든 데이터가 자동으로 저장돼요!', 'sys');
+            addChatMsg('시스템', '🌍 세계관을 클릭하고 캐릭터를 선택하세요!', 'sys');
+            switchPage('home');
+        }
+
+        setInterval(saveAll, 10000);
+
+        console.log('🧠 Deep-Co 최종 버전 로드됨!');
+        console.log('📚 지식:', library.length + '개');
+        console.log('👤 캐릭터:', chars.length + '개');
+        console.log('🌍 세계관:', worlds.length + '개');
+        console.log('🪙 골드:', gold);
+        console.log('⚡ 프리미엄:', premium);
+    </script>
+</body>
+</html>
