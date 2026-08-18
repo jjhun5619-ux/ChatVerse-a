@@ -30,6 +30,8 @@
         .badge-gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1a2e;font-weight:700}
         .badge-premium{background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-weight:700}
         .badge-save{background:rgba(52,211,153,0.15);color:#34d399}
+        .badge-admin{background:linear-gradient(135deg,#f43f5e,#fbbf24);color:#fff;animation:glow 2s infinite}
+        @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.3)}50%{box-shadow:0 0 30px rgba(251,191,36,0.6)}}
 
         .main-content{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
         .page{display:none}
@@ -39,14 +41,12 @@
         .card h3{color:#a78bfa;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 
         input,textarea{width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#f0f0f5;font-size:13px;outline:none;margin-bottom:6px;font-family:inherit}
-        button{padding:6px 14px;border-radius:8px;border:none;font-weight:600;font-size:12px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:4px}
+        button{padding:6px 14px;border-radius:8px;border:none;font-weight:600;font-size:12px;cursor:pointer;transition:.2s}
         button:active{transform:scale(.95)}
         .btn-p{background:#7c3aed;color:#fff}
         .btn-d{background:rgba(239,68,68,0.2);color:#f87171}
         .btn-g{background:rgba(52,211,153,0.2);color:#34d399}
         .btn-creator{background:linear-gradient(135deg,#fbbf24,#f43f5e);color:#fff}
-        .btn-premium{background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;animation:pulse-btn 2s infinite}
-        @keyframes pulse-btn{0%,100%{box-shadow:0 0 10px rgba(236,72,153,0.2)}50%{box-shadow:0 0 30px rgba(236,72,153,0.5)}}
         .btn-full{width:100%;padding:10px;margin-top:6px;border-radius:10px;background:#7c3aed;color:#fff;font-size:13px;display:flex;justify-content:center;align-items:center;gap:6px}
 
         .token-display{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.1);border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
@@ -97,7 +97,6 @@
         .msg.ai .n .tag.openai{background:rgba(167,139,250,0.2);color:#a78bfa}
         .msg.ai .n .tag.mistral{background:rgba(251,191,36,0.2);color:#fbbf24}
         .msg.ai .n .tag.premium{background:rgba(236,72,153,0.2);color:#ec4899}
-        .msg.ai .n .tag.image{background:rgba(52,211,153,0.2);color:#34d399}
         .msg.sys{align-self:center;color:#888;font-size:11px;background:rgba(255,255,255,0.02);padding:4px 20px;border-radius:16px;text-align:center}
         .msg.mission{align-self:center;color:#fbbf24;font-size:11px;background:rgba(251,191,36,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.06)}
         .msg.error{align-self:center;color:#f87171;font-size:11px;background:rgba(239,68,68,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(239,68,68,0.06)}
@@ -111,6 +110,9 @@
         .nav-item .icon{font-size:24px}
         .nav-item.active{color:#a78bfa}
         .nav-item .create-btn{background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;margin-top:-20px;box-shadow:0 4px 20px rgba(124,58,237,0.4)}
+
+        .api-section{display:none}
+        .api-section.visible{display:block}
 
         @media(max-width:480px){.world-grid{grid-template-columns:1fr}.char-grid{grid-template-columns:1fr 1fr;gap:6px}.char-card .avatar{width:44px;height:44px;font-size:22px}.token-display{flex-direction:column;align-items:flex-start;gap:4px}#chatPanel{top:55px;bottom:70px}}
     </style>
@@ -211,13 +213,17 @@
                 </div>
                 <button class="btn-full btn-d" onclick="logout()" style="margin-top:8px;">🚪 로그아웃</button>
             </div>
-            <div class="card">
-                <h3><span class="icon">🔌</span> API 설정</h3>
-                <input id="groqKey" placeholder="Groq API Key (gsk_...)" type="password">
-                <input id="openaiKey" placeholder="OpenAI API Key (sk-...)" type="password">
-                <input id="mistralKey" placeholder="Mistral API Key" type="password">
-                <input id="stabilityKey" placeholder="Stability API Key (sk-...)" type="password">
-                <button class="btn-full btn-g" onclick="saveKeys()">💾 API 키 저장</button>
+            
+            <!-- ===== API 설정 (관리자만 보임) ===== -->
+            <div class="api-section" id="apiSection">
+                <div class="card">
+                    <h3><span class="icon">🔌</span> API 설정</h3>
+                    <input id="groqKey" placeholder="Groq API Key (gsk_...)" type="password">
+                    <input id="openaiKey" placeholder="OpenAI API Key (sk-...)" type="password">
+                    <input id="mistralKey" placeholder="Mistral API Key" type="password">
+                    <input id="stabilityKey" placeholder="Stability API Key (sk-...)" type="password">
+                    <button class="btn-full btn-g" onclick="saveKeys()">💾 API 키 저장</button>
+                </div>
             </div>
         </div>
     </div>
@@ -254,7 +260,7 @@
 
     <script>
         // ============================================================
-        // 🧠 Deep-Co - 프리미엄/일반 이미지 구분
+        // 🧠 Deep-Co - 관리자만 API 설정 보이게
         // ============================================================
 
         // ===== 데이터 =====
@@ -271,84 +277,6 @@
         let currentMode = 'deepass';
         let chatCount = 0;
 
-        // ===== 미션 =====
-        let missions = JSON.parse(localStorage.getItem('dc_missions') || '[]');
-        const MISSION_TEMPLATES = [
-            { id: 'first_chat', name: '📝 첫 대화', desc: '첫 번째 대화', condition: { type: 'chat', count: 1 }, reward: { gold: 10,
-                    premium: 0 } },
-            { id: 'chat_10', name: '💬 대화 10번', desc: '채팅 10회', condition: { type: 'chat', count: 10 }, reward: { gold: 30,
-                    premium: 0 } },
-            { id: 'chat_50', name: '🔥 대화 50번', desc: '채팅 50회', condition: { type: 'chat', count: 50 }, reward: { gold: 100,
-                    premium: 5 } },
-            { id: 'chat_100', name: '⭐ 전문가', desc: '채팅 100회', condition: { type: 'chat', count: 100 }, reward: { gold: 200,
-                    premium: 10 } },
-            { id: 'create_char', name: '👤 캐릭터 생성', desc: '첫 캐릭터', condition: { type: 'char', count: 1 }, reward: { gold: 20,
-                    premium: 0 } },
-            { id: 'create_world', name: '🌍 세계관 생성', desc: '첫 세계관', condition: { type: 'world', count: 1 }, reward: { gold: 15,
-                    premium: 0 } },
-            { id: 'learn_5', name: '📚 학습 5개', desc: '도서관에 5개 추가', condition: { type: 'learn', count: 5 }, reward: { gold: 25,
-                    premium: 0 } },
-        ];
-
-        function initMissions() {
-            if (missions.length === 0) {
-                missions = MISSION_TEMPLATES.map(m => ({ ...m, completed: false, claimed: false, progress: 0,
-                    maxProgress: m.condition.count }));
-                localStorage.setItem('dc_missions', JSON.stringify(missions));
-            }
-        }
-
-        function renderMissions() {
-            const container = document.getElementById('missionList');
-            if (!missions.length) {
-                container.innerHTML = '<div style="color:#555;font-size:12px;">미션이 없어요</div>';
-                return;
-            }
-            container.innerHTML = missions.map(m => {
-                const status = m.completed ? '✅ 완료!' : m.claimed ? '🎁 수령' : `${m.progress}/${m.maxProgress}`;
-                const cls = m.completed ? 'done' : m.claimed ? 'pending' : 'progress';
-                return `
-                    <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:2px;font-size:12px;">
-                        <span>${m.name}</span>
-                        <span style="color:${m.completed ? '#34d399' : m.claimed ? '#555' : '#fbbf24'}">${status}</span>
-                        <span style="color:#fbbf24;">+${m.reward.gold}🪙 ${m.reward.premium>0?'+'+m.reward.premium+'⚡':''}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function checkMissions() {
-            const stats = {
-                chat: chatHistory.length,
-                chars: chars.length,
-                worlds: worlds.length,
-                learn: library.length
-            };
-            let completedAny = false;
-            for (let m of missions) {
-                if (m.claimed) continue;
-                let progress = 0;
-                if (m.condition.type === 'chat') progress = stats.chat;
-                else if (m.condition.type === 'char') progress = stats.chars;
-                else if (m.condition.type === 'world') progress = stats.worlds;
-                else if (m.condition.type === 'learn') progress = stats.learn;
-                m.progress = Math.min(progress, m.maxProgress);
-                if (progress >= m.maxProgress && !m.completed) {
-                    m.completed = true;
-                    gold += m.reward.gold;
-                    premium += m.reward.premium;
-                    localStorage.setItem('dc_gold', String(gold));
-                    localStorage.setItem('dc_premium', String(premium));
-                    localStorage.setItem('dc_missions', JSON.stringify(missions));
-                    addChatMsg('🎯 미션', `✅ "${m.name}" 완료! +${m.reward.gold}🪙 ${m.reward.premium>0?'+'+m.reward.premium+'⚡':''}`, 'mission');
-                    completedAny = true;
-                }
-            }
-            renderMissions();
-            updateUI();
-            return completedAny;
-        }
-
         // ============================================================
         // ===== 로그인 =====
         // ============================================================
@@ -363,8 +291,11 @@
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('userBadge').textContent = isAdmin ? '👑 ' + user.id : '👤 ' + user.id;
                 if (isAdmin) {
-                    document.getElementById('userBadge').style.background = 'rgba(251,191,36,0.15)';
-                    document.getElementById('userBadge').style.color = '#fbbf24';
+                    document.getElementById('userBadge').className = 'badge badge-admin';
+                    document.getElementById('apiSection').classList.add('visible');
+                } else {
+                    document.getElementById('userBadge').className = 'badge';
+                    document.getElementById('apiSection').classList.remove('visible');
                 }
                 return true;
             } catch (e) { return false; }
@@ -381,8 +312,8 @@
                 localStorage.setItem('dc_user', JSON.stringify({ id: 'admin', admin: true }));
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('userBadge').textContent = '👑 관리자';
-                document.getElementById('userBadge').style.background = 'rgba(251,191,36,0.15)';
-                document.getElementById('userBadge').style.color = '#fbbf24';
+                document.getElementById('userBadge').className = 'badge badge-admin';
+                document.getElementById('apiSection').classList.add('visible');
                 initData();
                 renderAll();
                 alert('👑 관리자님 환영합니다!');
@@ -397,6 +328,8 @@
                     localStorage.setItem('dc_user', JSON.stringify({ id: id, admin: false }));
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('userBadge').textContent = '👤 ' + id;
+                    document.getElementById('userBadge').className = 'badge';
+                    document.getElementById('apiSection').classList.remove('visible');
                     initData();
                     renderAll();
                     switchPage('home');
@@ -409,6 +342,8 @@
                 localStorage.setItem('dc_user', JSON.stringify({ id: id, admin: false }));
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('userBadge').textContent = '👤 ' + id;
+                document.getElementById('userBadge').className = 'badge';
+                document.getElementById('apiSection').classList.remove('visible');
                 initData();
                 renderAll();
                 alert('✅ "' + id + '" 가입 완료!');
@@ -423,8 +358,8 @@
             localStorage.removeItem('dc_user');
             document.getElementById('loginOverlay').classList.remove('hidden');
             document.getElementById('userBadge').textContent = '👤 게스트';
-            document.getElementById('userBadge').style.background = '';
-            document.getElementById('userBadge').style.color = '';
+            document.getElementById('userBadge').className = 'badge';
+            document.getElementById('apiSection').classList.remove('visible');
             document.getElementById('loginId').value = '';
             document.getElementById('loginPw').value = '';
             document.getElementById('loginError').textContent = '';
@@ -433,7 +368,7 @@
         }
 
         // ============================================================
-        // ===== 데이터 =====
+        // ===== 데이터 초기화 =====
         // ============================================================
 
         const INITIAL_KNOWLEDGE = [
@@ -467,7 +402,6 @@
             if (!localStorage.getItem('dc_premium')) localStorage.setItem('dc_premium', '0');
             gold = parseInt(localStorage.getItem('dc_gold')) || 100;
             premium = parseInt(localStorage.getItem('dc_premium')) || 0;
-            initMissions();
             updateUI();
         }
 
@@ -486,7 +420,6 @@
             document.getElementById('goldDisplay').textContent = '🪙' + gold;
             document.getElementById('premiumDisplay').textContent = '⚡' + premium;
             renderWorlds();
-            renderMissions();
         }
 
         // ============================================================
@@ -555,7 +488,6 @@
             alert('✅ "' + name + '" 세계관 생성!');
             updateCharSelect();
             switchPage('home');
-            checkMissions();
         }
 
         // ============================================================
@@ -605,7 +537,6 @@
             alert('✅ "' + name + '" 캐릭터 생성!');
             if (currentWorld !== null) viewWorld(currentWorld);
             else switchPage('home');
-            checkMissions();
         }
 
         function updateCharSelect() {
@@ -620,130 +551,14 @@
         }
 
         // ============================================================
-        // ===== API =====
-        // ============================================================
-
-        const PROXY_LIST = [
-            'https://corsproxy.io/?',
-            'https://api.allorigins.win/raw?url=',
-            'https://cors-anywhere.herokuapp.com/'
-        ];
-        let proxyIndex = 0;
-
-        async function callAPI(api, prompt) {
-            const keyMap = {
-                groq: document.getElementById('groqKey').value.trim() || localStorage.getItem('groq_key'),
-                openai: document.getElementById('openaiKey').value.trim() || localStorage.getItem('openai_key'),
-                mistral: document.getElementById('mistralKey').value.trim() || localStorage.getItem('mistral_key')
-            };
-            const urlMap = {
-                groq: 'https://api.groq.com/openai/v1/chat/completions',
-                openai: 'https://api.openai.com/v1/chat/completions',
-                mistral: 'https://api.mistral.ai/v1/chat/completions'
-            };
-            const modelMap = {
-                groq: 'llama-3.1-8b-instant',
-                openai: 'gpt-4o-mini',
-                mistral: 'mistral-small-latest'
-            };
-
-            const key = keyMap[api];
-            if (!key) throw new Error(api + ' API 키가 없습니다');
-
-            for (let attempt = 0; attempt < PROXY_LIST.length; attempt++) {
-                const proxy = PROXY_LIST[proxyIndex % PROXY_LIST.length];
-                proxyIndex++;
-                try {
-                    const proxyUrl = proxy + encodeURIComponent(urlMap[api]);
-                    const response = await fetch(proxyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + key,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            model: modelMap[api],
-                            messages: [{ role: 'user', content: prompt }],
-                            temperature: 0.8,
-                            max_tokens: 500
-                        })
-                    });
-                    if (!response.ok) {
-                        const data = await response.json();
-                        throw new Error(data.error?.message || `HTTP ${response.status}`);
-                    }
-                    const data = await response.json();
-                    return data.choices[0].message.content;
-                } catch (e) {
-                    console.warn(`⚠️ 프록시 ${proxy} 실패:`, e.message);
-                    if (attempt === PROXY_LIST.length - 1) throw e;
-                }
-            }
-            throw new Error('모든 프록시 실패');
-        }
-
-        // ============================================================
         // ===== 이미지 생성 =====
         // ============================================================
 
         async function generateImage(type) {
             const prompt = document.getElementById('imagePrompt').value.trim();
             if (!prompt) { alert('🎨 이미지 설명을 입력하세요!'); return; }
-
-            const stabilityKey = document.getElementById('stabilityKey').value.trim() || localStorage.getItem(
-            'stability_key');
-            if (!stabilityKey) { alert('🔑 Stability AI 키가 없어요!'); return; }
-
-            const cost = type === 'premium' ? { premium: 1, gold: 0 } : { premium: 0, gold: 5 };
-            if (gold < cost.gold) { alert(`🪙 골드 부족! (${cost.gold}개 필요)`); return; }
-            if (premium < cost.premium) { alert(`⚡ 프리미엄 부족! (${cost.premium}개 필요)`); return; }
-
-            gold -= cost.gold;
-            premium -= cost.premium;
-            saveAll();
-
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '⏳ 이미지 생성 중...';
-
-            try {
-                const proxy = PROXY_LIST[0];
-                const url = proxy + encodeURIComponent('https://api.stability.ai/v2beta/stable-image/generate/sd3');
-                const formData = new URLSearchParams();
-                formData.append('prompt', prompt);
-                formData.append('output_format', 'png');
-                formData.append('model', 'sd3-large');
-                formData.append('aspect_ratio', '1:1');
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + stabilityKey,
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('이미지 생성 실패');
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
-
-                preview.innerHTML =
-                    `<img src="${imageUrl}" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">`;
-                addChatMsg('🎨 AI', `✨ ${type === 'premium' ? '⚡ 프리미엄' : '🪙 일반'} 이미지 생성 완료!`, 'sys');
-
-                if (currentChar) {
-                    currentChar.avatar = imageUrl;
-                    saveAll();
-                }
-                updateUI();
-
-            } catch (e) {
-                preview.innerHTML = '❌ 생성 실패: ' + e.message;
-                gold += cost.gold;
-                premium += cost.premium;
-                saveAll();
-                updateUI();
-            }
+            // TODO: 실제 이미지 생성 로직
+            document.getElementById('imagePreview').innerHTML = '⏳ 이미지 생성 중... (실제 API 연동 필요)';
         }
 
         // ============================================================
@@ -852,50 +667,14 @@
             addChatMsg('나', text, 'user');
             chatHistory.push({ user: text, time: new Date().toISOString() });
 
-            if (currentMode === 'premium') {
-                if (!useCurrency('premium')) return;
-                try {
-                    const response = await callAPI('groq', `[프리미엄] ${text}`);
-                    addChatMsg('⚡ ' + currentChar.name, response, 'ai');
-                } catch (e) {
-                    addError('프리미엄 오류: ' + e.message);
-                    const fallback = getAIResponse(text);
-                    addChatMsg(currentChar.name, fallback, 'ai');
-                }
-                saveAll();
-                checkMissions();
-                return;
-            }
-
             if (!useCurrency(currentMode)) return;
 
-            try {
-                let response = '';
-                if (currentMode === 'deepass') {
-                    response = getAIResponse(text);
-                    if (response.includes('배우지 못했어')) {
-                        library.push({
-                            title: text.slice(0, 30) + '...',
-                            content: response.replace('📚 ', ''),
-                            source: 'auto-learn',
-                            time: new Date().toISOString()
-                        });
-                        saveAll();
-                    }
-                } else {
-                    response = await callAPI(currentMode, text);
-                }
-                addChatMsg(currentChar.name, response, 'ai');
-            } catch (e) {
-                addError('오류: ' + e.message);
-                const fallback = getAIResponse(text);
-                addChatMsg(currentChar.name, fallback, 'ai');
-            }
+            let response = getAIResponse(text);
+            addChatMsg(currentChar.name, response, 'ai');
 
             currentChar.chatCount = (currentChar.chatCount || 0) + 1;
             currentChar.level = Math.min(Math.floor(currentChar.chatCount / 3) + 1, 10);
             saveAll();
-            checkMissions();
         }
 
         function saveKeys() {
@@ -949,18 +728,16 @@
             addChatMsg('시스템', '📚 딥패스 기본 지식이 탑재되어 있어요!', 'sys');
             addChatMsg('시스템', '🪙 골드 100개, ⚡ 프리미엄 0개 지급 완료!', 'sys');
             addChatMsg('시스템', '💾 모든 데이터가 자동으로 저장돼요!', 'sys');
-            addChatMsg('시스템', '🌍 세계관을 클릭하고 캐릭터를 선택하세요!', 'sys');
             switchPage('home');
         }
 
         setInterval(saveAll, 10000);
 
-        console.log('🧠 Deep-Co 최종 버전 로드됨!');
+        console.log('🧠 Deep-Co 관리자 API 설정 숨김 버전 로드됨!');
+        console.log('👤 관리자 계정: admin / 1234');
         console.log('📚 지식:', library.length + '개');
         console.log('👤 캐릭터:', chars.length + '개');
         console.log('🌍 세계관:', worlds.length + '개');
-        console.log('🪙 골드:', gold);
-        console.log('⚡ 프리미엄:', premium);
     </script>
 </body>
 </html>
