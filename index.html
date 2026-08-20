@@ -32,6 +32,8 @@
         .badge-save{background:rgba(52,211,153,0.15);color:#34d399}
         .badge-admin{background:linear-gradient(135deg,#f43f5e,#fbbf24);color:#fff;animation:glow 2s infinite}
         @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.3)}50%{box-shadow:0 0 30px rgba(251,191,36,0.6)}}
+        .badge-legend{background:linear-gradient(135deg,#fbbf24,#f43f5e,#a78bfa);color:#fff;animation:legend-glow 3s infinite}
+        @keyframes legend-glow{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.3)}50%{box-shadow:0 0 40px rgba(244,63,94,0.6)}}
 
         .main-content{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
         .page{display:none}
@@ -47,6 +49,8 @@
         .btn-d{background:rgba(239,68,68,0.2);color:#f87171}
         .btn-g{background:rgba(52,211,153,0.2);color:#34d399}
         .btn-creator{background:linear-gradient(135deg,#fbbf24,#f43f5e);color:#fff}
+        .btn-premium-glow{background:linear-gradient(135deg,#ec4899,#8b5cf6,#7c3aed);color:#fff;animation:premium-pulse 2s infinite}
+        @keyframes premium-pulse{0%,100%{box-shadow:0 0 10px rgba(236,72,153,0.2)}50%{box-shadow:0 0 30px rgba(236,72,153,0.6)}}
         .btn-full{width:100%;padding:10px;margin-top:6px;border-radius:10px;background:#7c3aed;color:#fff;font-size:13px;display:flex;justify-content:center;align-items:center;gap:6px}
 
         .token-display{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.1);border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
@@ -65,6 +69,8 @@
         .world-card .desc{font-size:10px;color:#888}
         .world-card .count{font-size:10px;color:#555;margin-top:4px}
         .world-card .del{position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.1);color:#f87171;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer}
+        .world-card.premium{background:rgba(236,72,153,0.05);border-color:rgba(236,72,153,0.2)}
+        .world-card.premium .name{color:#ec4899}
 
         .char-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .char-card{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s}
@@ -74,6 +80,8 @@
         .char-card .name{font-size:13px;font-weight:700;color:#a78bfa}
         .char-card .desc{font-size:10px;color:#888}
         .char-card .lv{font-size:10px;color:#fbbf24}
+        .char-card.legend{border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.05)}
+        .char-card.legend .name{color:#fbbf24}
 
         #chatPanel{display:none;flex-direction:column;flex:1;overflow:hidden;position:fixed;top:60px;left:0;right:0;bottom:80px;background:#0b0b1a;z-index:50}
         #chatPanel.active{display:flex}
@@ -100,6 +108,7 @@
         .msg.sys{align-self:center;color:#888;font-size:11px;background:rgba(255,255,255,0.02);padding:4px 20px;border-radius:16px;text-align:center}
         .msg.mission{align-self:center;color:#fbbf24;font-size:11px;background:rgba(251,191,36,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.06)}
         .msg.error{align-self:center;color:#f87171;font-size:11px;background:rgba(239,68,68,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(239,68,68,0.06)}
+        .msg.premium-msg{align-self:center;color:#ec4899;font-size:11px;background:rgba(236,72,153,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(236,72,153,0.1)}
 
         .bar{display:flex;gap:6px;padding:8px 12px;background:rgba(18,18,30,0.6);border-top:1px solid rgba(255,255,255,0.03);flex-shrink:0}
         .bar input{flex:1;margin:0;font-size:13px;padding:10px 16px;border-radius:24px}
@@ -118,7 +127,14 @@
         .quiz-options button{flex:1;padding:8px 12px;border-radius:8px;border:1px solid rgba(167,139,250,0.1);background:rgba(0,0,0,0.2);color:#f0f0f5;cursor:pointer;transition:.2s}
         .quiz-options button:hover{background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.3)}
 
-        @media(max-width:480px){.world-grid{grid-template-columns:1fr}.char-grid{grid-template-columns:1fr 1fr;gap:6px}.char-card .avatar{width:44px;height:44px;font-size:22px}.token-display{flex-direction:column;align-items:flex-start;gap:4px}#chatPanel{top:55px;bottom:70px}}
+        .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .shop-item{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center}
+        .shop-item .icon{font-size:28px;display:block;margin-bottom:4px}
+        .shop-item .name{font-size:12px;font-weight:700;color:#f0f0f5}
+        .shop-item .desc{font-size:10px;color:#888}
+        .shop-item .price{font-size:11px;color:#ec4899;font-weight:700;margin-top:4px}
+
+        @media(max-width:480px){.world-grid{grid-template-columns:1fr}.char-grid{grid-template-columns:1fr 1fr;gap:6px}.char-card .avatar{width:44px;height:44px;font-size:22px}.token-display{flex-direction:column;align-items:flex-start;gap:4px}#chatPanel{top:55px;bottom:70px}.shop-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -155,6 +171,7 @@
             <div class="token-display">
                 <div class="token-item"><span class="icon">🪙</span><span class="value gold" id="goldValue">0</span><span class="label">골드</span></div>
                 <div class="token-item"><span class="icon">⚡</span><span class="value premium" id="premiumValue">0</span><span class="label">프리미엄</span></div>
+                <div class="token-item" id="boostDisplay" style="display:none;"><span class="icon">🪙</span><span style="font-size:12px;color:#34d399;">부스트 활성!</span></div>
             </div>
             <div class="card">
                 <h3><span class="icon">☀️</span> 출석 체크</h3>
@@ -169,6 +186,10 @@
                     <div id="quizResult" style="font-size:13px;color:#888;min-height:24px;"></div>
                     <button class="btn-full btn-creator" onclick="startQuiz()">🧠 퀴즈 시작 (1골드)</button>
                 </div>
+            </div>
+            <div class="card">
+                <h3><span class="icon">🛒</span> 프리미엄 상점</h3>
+                <div class="shop-grid" id="premiumShop"></div>
             </div>
             <div class="card">
                 <h3><span class="icon">🌍</span> 세계관</h3>
@@ -186,6 +207,7 @@
                 <p id="worldDesc" style="color:#888;font-size:13px;margin-bottom:8px;"></p>
                 <div class="char-grid" id="worldCharGrid"></div>
                 <button class="btn-full btn-creator" onclick="showAddChar()">➕ 캐릭터 추가</button>
+                <button class="btn-full btn-premium-glow" onclick="createPremiumWorld()" style="margin-top:4px;">🌟 프리미엄 세계관 생성 (3⚡)</button>
             </div>
         </div>
 
@@ -210,7 +232,7 @@
                 <input id="imagePrompt" placeholder="이미지 설명 (예: 마법사 모자 쓴 고양이)">
                 <div style="display:flex;gap:6px;margin-bottom:6px;">
                     <button class="btn-full btn-g" onclick="generateImage('normal')" style="flex:1;">🪙 일반 (5골드)</button>
-                    <button class="btn-full btn-premium" onclick="generateImage('premium')" style="flex:1;">⚡ 프리미엄 (1토큰)</button>
+                    <button class="btn-full btn-premium-glow" onclick="generateImage('premium')" style="flex:1;">⚡ 프리미엄 (1토큰)</button>
                 </div>
                 <div id="imagePreview" style="text-align:center;padding:10px;color:#888;font-size:12px;border:1px dashed rgba(255,255,255,0.05);border-radius:8px;min-height:60px;">
                     🎨 이미지가 여기에 표시됩니다
@@ -229,7 +251,12 @@
                     <span style="font-size:13px;color:#ccc;">역할</span>
                     <span style="font-size:13px;color:#f0f0f5;" id="profileRole">일반</span>
                 </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                    <span style="font-size:13px;color:#ccc;">프리미엄</span>
+                    <span style="font-size:13px;color:#ec4899;" id="profilePremium">0개</span>
+                </div>
                 <button class="btn-full btn-d" onclick="logout()" style="margin-top:8px;">🚪 로그아웃</button>
+                <button class="btn-full btn-premium-glow" onclick="activateGoldBoost()" style="margin-top:4px;">🪙 골드 부스트 (3⚡, 24시간)</button>
             </div>
             
             <div class="api-section" id="apiSection">
@@ -285,7 +312,7 @@
 
     <script>
         // ============================================================
-        // 🧠 Deep-Co - 최종 완전체 (Groq API 실제 채팅 연동)
+        // 🧠 Deep-Co - 최종 완전체 (프리미엄 기능 강화)
         // ============================================================
 
         // ===== 서버 주소 =====
@@ -305,29 +332,54 @@
         let currentMode = 'deepass';
         let chatCount = 0;
         let supabaseClient = null;
+        let goldBoost = localStorage.getItem('gold_boost') === 'true';
+        let goldBoostEnd = parseInt(localStorage.getItem('gold_boost_end')) || 0;
+
+        // ===== 프리미엄 전용 캐릭터 =====
+        const PREMIUM_CHARS = [
+            { id: 100, name: '🌟 별의 현자', emoji: '🌟', personality: '우주의 지혜를 가진 현자', level: 10, chatCount: 0, premiumCost: 5 },
+            { id: 101, name: '👑 전설의 용사', emoji: '👑', personality: '전설 속에서 깨어난 용사', level: 10, chatCount: 0, premiumCost: 5 },
+            { id: 102, name: '🌙 달의 수호자', emoji: '🌙', personality: '달빛 아래서 태어난 수호자', level: 10, chatCount: 0, premiumCost: 5 },
+        ];
+
+        // ===== 프리미엄 상점 아이템 =====
+        const PREMIUM_SHOP = [
+            { id: 'legend_char_1', name: '🌟 별의 현자', desc: '전설 등급 캐릭터', icon: '🌟', cost: 5 },
+            { id: 'legend_char_2', name: '👑 전설의 용사', desc: '전설 등급 캐릭터', icon: '👑', cost: 5 },
+            { id: 'legend_char_3', name: '🌙 달의 수호자', desc: '전설 등급 캐릭터', icon: '🌙', cost: 5 },
+            { id: 'gold_boost', name: '🪙 골드 부스트', desc: '24시간 골드 2배', icon: '🪙', cost: 3 },
+            { id: 'premium_badge', name: '👑 프리미엄 배지', desc: '전용 프로필 배지', icon: '👑', cost: 2 },
+        ];
 
         // ===== 미션 =====
         let missions = JSON.parse(localStorage.getItem('dc_missions') || '[]');
         const MISSION_TEMPLATES = [
             { id: 'first_chat', name: '📝 첫 대화', desc: '첫 번째 대화를 해보세요!', condition: { type: 'chat', count: 1 },
-            reward: { gold: 10, premium: 1 } },
+            reward: { gold: 10, premium: 0 } },
             { id: 'chat_10', name: '💬 대화 10번', desc: '채팅을 10번 해보세요!', condition: { type: 'chat', count: 10 },
-                reward: { gold: 30, premium: 5 } },
+                reward: { gold: 30, premium: 1 } },
             { id: 'chat_50', name: '🔥 대화 50번', desc: '채팅을 50번 해보세요!', condition: { type: 'chat', count: 50 },
-                reward: { gold: 100, premium: 20 } },
+                reward: { gold: 100, premium: 2 } },
             { id: 'chat_100', name: '⭐ 전문가', desc: '채팅을 100번 해보세요!', condition: { type: 'chat', count: 100 },
-                reward: { gold: 200, premium: 50 } },
+                reward: { gold: 200, premium: 3 } },
             { id: 'create_char', name: '👤 캐릭터 생성', desc: '첫 번째 캐릭터를 만들어보세요!', condition: { type: 'char', count: 1 },
-                reward: { gold: 20, premium: 3 } },
+                reward: { gold: 20, premium: 0 } },
             { id: 'create_world', name: '🌍 세계관 생성', desc: '첫 번째 세계관을 만들어보세요!', condition: { type: 'world', count: 1 },
-                reward: { gold: 15, premium: 2 } },
+                reward: { gold: 15, premium: 0 } },
             { id: 'learn_5', name: '📚 도서관 학습', desc: '도서관에 지식을 5개 추가해보세요!', condition: { type: 'learn', count: 5 },
-                reward: { gold: 25, premium: 5 } },
+                reward: { gold: 25, premium: 1 } },
             { id: 'daily_login', name: '☀️ 출석 체크', desc: '오늘 접속하기!', condition: { type: 'attendance', count: 1 },
-                reward: { gold: 10, premium: 1 } },
+                reward: { gold: 10, premium: 0 } },
+            { id: 'premium_chat_10', name: '⚡ 프리미엄 채팅 10회', desc: '프리미엄 모드로 10번 대화', condition: { type: 'premium_chat',
+                    count: 10 }, reward: { gold: 100, premium: 3 } },
+            { id: 'premium_image_5', name: '🖼️ 프리미엄 이미지 5개', desc: '프리미엄 이미지 5개 생성', condition: { type: 'premium_image',
+                    count: 5 }, reward: { gold: 50, premium: 2 } },
         ];
 
+        // ============================================================
         // ===== 기본 지식 =====
+        // ============================================================
+
         const INITIAL_KNOWLEDGE = [
             { title: '인공지능 기본 개념', content: '인공지능(AI)은 인간의 학습, 추론, 지각 능력을 모방한 컴퓨터 시스템입니다.' },
             { title: '자연어 처리 기초', content: '자연어 처리는 인간의 언어를 컴퓨터가 이해하고 생성하도록 하는 기술입니다.' },
@@ -364,8 +416,9 @@
             }
             container.innerHTML = missions.map(m => {
                 const status = m.completed ? '✅ 완료!' : m.claimed ? '🎁 수령' : `${m.progress}/${m.maxProgress}`;
+                const isPremium = m.id.includes('premium');
                 return `
-                    <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:2px;font-size:12px;">
+                    <div style="display:flex;justify-content:space-between;padding:4px 8px;background:${isPremium ? 'rgba(236,72,153,0.05)' : 'rgba(255,255,255,0.02)'};border-radius:6px;margin-bottom:2px;font-size:12px;${isPremium ? 'border-left:2px solid #ec4899;' : ''}">
                         <span>${m.name}</span>
                         <span style="color:${m.completed ? '#34d399' : m.claimed ? '#555' : '#fbbf24'}">${status}</span>
                         <span style="color:#fbbf24;">+${m.reward.gold}🪙 ${m.reward.premium>0?'+'+m.reward.premium+'⚡':''}</span>
@@ -379,7 +432,9 @@
                 chat: chatHistory.length,
                 chars: chars.length,
                 worlds: worlds.length,
-                learn: library.length
+                learn: library.length,
+                premium_chat: chatHistory.filter(c => c.mode === 'premium').length || 0,
+                premium_image: 0
             };
             let completedAny = false;
             for (let m of missions) {
@@ -389,15 +444,19 @@
                 else if (m.condition.type === 'char') progress = stats.chars;
                 else if (m.condition.type === 'world') progress = stats.worlds;
                 else if (m.condition.type === 'learn') progress = stats.learn;
+                else if (m.condition.type === 'premium_chat') progress = stats.premium_chat;
                 m.progress = Math.min(progress, m.maxProgress);
                 if (progress >= m.maxProgress && !m.completed) {
                     m.completed = true;
-                    gold += m.reward.gold;
-                    premium += m.reward.premium;
+                    let rewardGold = m.reward.gold;
+                    let rewardPremium = m.reward.premium;
+                    if (goldBoost) rewardGold = Math.floor(rewardGold * 2);
+                    gold += rewardGold;
+                    premium += rewardPremium;
                     localStorage.setItem('dc_gold', String(gold));
                     localStorage.setItem('dc_premium', String(premium));
                     localStorage.setItem('dc_missions', JSON.stringify(missions));
-                    addChatMsg('🎯 미션', `✅ "${m.name}" 완료! +${m.reward.gold}🪙 +${m.reward.premium}⚡`, 'mission');
+                    addChatMsg('🎯 미션', `✅ "${m.name}" 완료! +${rewardGold}🪙 +${rewardPremium}⚡`, 'mission');
                     completedAny = true;
                 }
             }
@@ -446,8 +505,9 @@
                 return;
             }
 
-            const rewardGold = 10;
-            const rewardPremium = 1;
+            let rewardGold = 10;
+            let rewardPremium = 0;
+            if (goldBoost) rewardGold = 20;
             gold += rewardGold;
             premium += rewardPremium;
             localStorage.setItem('dc_gold', String(gold));
@@ -466,11 +526,11 @@
 
             const statusEl = document.getElementById('attendanceStatus');
             if (statusEl) {
-                statusEl.textContent = '☀️ 오늘 출석 완료! +10🪙 +1⚡ 획득!';
+                statusEl.textContent = `☀️ 오늘 출석 완료! +${rewardGold}🪙 +${rewardPremium}⚡ 획득!`;
                 statusEl.style.color = '#34d399';
             }
 
-            addChatMsg('☀️ 출석', '출석 체크 완료! +10🪙 +1⚡ 획득!', 'mission');
+            addChatMsg('☀️ 출석', `출석 체크 완료! +${rewardGold}🪙 +${rewardPremium}⚡ 획득!`, 'mission');
             checkMissions();
             console.log('☀️ 출석 체크 완료! (', today, ')');
         }
@@ -572,8 +632,9 @@
             if (optionsEl) optionsEl.innerHTML = '';
 
             if (selected === currentQuiz.answer) {
-                const rewardGold = 5;
-                const rewardPremium = 1;
+                let rewardGold = 5;
+                let rewardPremium = 0;
+                if (goldBoost) rewardGold = 10;
                 gold += rewardGold;
                 premium += rewardPremium;
                 localStorage.setItem('dc_gold', String(gold));
@@ -603,6 +664,147 @@
         }
 
         // ============================================================
+        // ===== 프리미엄 상점 =====
+        // ============================================================
+
+        function renderPremiumShop() {
+            const container = document.getElementById('premiumShop');
+            if (!container) return;
+
+            container.innerHTML = PREMIUM_SHOP.map(item => `
+                <div class="shop-item" onclick="buyPremiumItem('${item.id}')">
+                    <span class="icon">${item.icon}</span>
+                    <div class="name">${item.name}</div>
+                    <div class="desc">${item.desc}</div>
+                    <div class="price">${item.cost}⚡</div>
+                </div>
+            `).join('');
+        }
+
+        function buyPremiumItem(itemId) {
+            const item = PREMIUM_SHOP.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (premium < item.cost) {
+                alert(`⚡ 프리미엄 토큰이 부족해요! (${item.cost}개 필요)`);
+                return;
+            }
+
+            premium -= item.cost;
+            localStorage.setItem('dc_premium', String(premium));
+
+            if (itemId === 'gold_boost') {
+                activateGoldBoostDirect();
+            } else if (itemId.startsWith('legend_char_')) {
+                unlockLegendCharacter(itemId);
+            } else if (itemId === 'premium_badge') {
+                unlockPremiumBadge();
+            }
+
+            saveAll();
+            updateUI();
+            renderPremiumShop();
+            addChatMsg('🛒 상점', `✅ ${item.name} 구매 완료!`, 'sys');
+        }
+
+        function unlockLegendCharacter(itemId) {
+            const charMap = {
+                'legend_char_1': '🌟 별의 현자',
+                'legend_char_2': '👑 전설의 용사',
+                'legend_char_3': '🌙 달의 수호자'
+            };
+            const name = charMap[itemId];
+            if (!name) return;
+
+            // 이미 있는지 확인
+            if (chars.some(c => c.name === name)) {
+                alert('이미 보유한 캐릭터예요!');
+                return;
+            }
+
+            const newChar = PREMIUM_CHARS.find(c => c.name === name);
+            if (newChar) {
+                chars.push({ ...newChar, id: Date.now(), premiumUnlocked: true });
+                localStorage.setItem('dc_chars', JSON.stringify(chars));
+                alert(`🌟 ${name} 캐릭터를 획득했어요!`);
+            }
+        }
+
+        function unlockPremiumBadge() {
+            const badge = document.getElementById('userBadge');
+            if (badge) {
+                badge.className = 'badge badge-legend';
+                badge.textContent = '👑 ' + (currentUser || '게스트');
+            }
+            localStorage.setItem('premium_badge_unlocked', 'true');
+            alert('👑 프리미엄 배지를 획득했어요!');
+        }
+
+        // ============================================================
+        // ===== 골드 부스트 =====
+        // ============================================================
+
+        function activateGoldBoostDirect() {
+            goldBoost = true;
+            goldBoostEnd = Date.now() + 86400000;
+            localStorage.setItem('gold_boost', 'true');
+            localStorage.setItem('gold_boost_end', String(goldBoostEnd));
+            document.getElementById('boostDisplay').style.display = 'flex';
+            alert('🪙 골드 부스트 활성화! (24시간)');
+        }
+
+        function activateGoldBoost() {
+            if (premium < 3) {
+                alert('⚡ 프리미엄 토큰 3개가 필요해요!');
+                return;
+            }
+            premium -= 3;
+            localStorage.setItem('dc_premium', String(premium));
+            activateGoldBoostDirect();
+            saveAll();
+            updateUI();
+        }
+
+        function checkGoldBoost() {
+            if (goldBoost && goldBoostEnd < Date.now()) {
+                goldBoost = false;
+                localStorage.setItem('gold_boost', 'false');
+                document.getElementById('boostDisplay').style.display = 'none';
+            }
+            if (goldBoost) {
+                document.getElementById('boostDisplay').style.display = 'flex';
+            }
+        }
+
+        // ============================================================
+        // ===== 프리미엄 세계관 =====
+        // ============================================================
+
+        function createPremiumWorld() {
+            if (premium < 3) {
+                alert('⚡ 프리미엄 토큰 3개가 필요해요!');
+                return;
+            }
+            premium -= 3;
+            localStorage.setItem('dc_premium', String(premium));
+
+            const name = prompt('🌟 프리미엄 세계관 이름을 입력하세요:');
+            if (!name) return;
+
+            worlds.push({
+                name: '🌟 ' + name,
+                desc: '✨ 프리미엄 전용 세계관',
+                premium: true
+            });
+            localStorage.setItem('dc_worlds', JSON.stringify(worlds));
+            saveAll();
+            updateUI();
+            alert('✅ 프리미엄 세계관 생성 완료!');
+            switchPage('home');
+            checkMissions();
+        }
+
+        // ============================================================
         // ===== 로그인 =====
         // ============================================================
 
@@ -621,6 +823,11 @@
                 } else {
                     document.getElementById('userBadge').className = 'badge';
                     document.getElementById('apiSection').classList.remove('visible');
+                }
+                // 프리미엄 배지 확인
+                if (localStorage.getItem('premium_badge_unlocked') === 'true') {
+                    document.getElementById('userBadge').className = 'badge badge-legend';
+                    document.getElementById('userBadge').textContent = '👑 ' + (currentUser || '게스트');
                 }
                 return true;
             } catch (e) { return false; }
@@ -717,8 +924,10 @@
             initMissions();
             checkDailyReset();
             loadAttendanceStatus();
+            checkGoldBoost();
 
             updateUI();
+            renderPremiumShop();
         }
 
         function saveAll() {
@@ -735,8 +944,11 @@
             document.getElementById('premiumValue').textContent = premium;
             document.getElementById('goldDisplay').textContent = '🪙' + gold;
             document.getElementById('premiumDisplay').textContent = '⚡' + premium;
+            document.getElementById('profilePremium').textContent = premium + '개';
             renderWorlds();
             renderMissions();
+            renderPremiumShop();
+            checkGoldBoost();
         }
 
         // ============================================================
@@ -751,8 +963,8 @@
                 return;
             }
             grid.innerHTML = worlds.map((w, i) => `
-                <div class="world-card" onclick="viewWorld(${i})">
-                    <span class="icon">🌍</span>
+                <div class="world-card ${w.premium ? 'premium' : ''}" onclick="viewWorld(${i})">
+                    <span class="icon">${w.premium ? '🌟' : '🌍'}</span>
                     <div class="name">${esc(w.name)}</div>
                     <div class="desc">${esc(w.desc || '')}</div>
                     <div class="count">👥 ${chars.filter(c=>c.worldId===i).length}명</div>
@@ -764,7 +976,7 @@
         function viewWorld(i) {
             currentWorld = i;
             const w = worlds[i];
-            document.getElementById('worldTitle').textContent = '🌍 ' + w.name;
+            document.getElementById('worldTitle').textContent = (w.premium ? '🌟 ' : '🌍 ') + w.name;
             document.getElementById('worldDesc').textContent = w.desc || '';
             const grid = document.getElementById('worldCharGrid');
             if (!grid) return;
@@ -773,9 +985,9 @@
                 grid.innerHTML = '<div style="grid-column:1/3;text-align:center;color:#555;padding:20px;">👤 캐릭터가 없어요</div>';
             } else {
                 grid.innerHTML = worldChars.map((c) => `
-                    <div class="char-card" onclick="selectChar(${chars.indexOf(c)})">
+                    <div class="char-card ${c.premiumUnlocked ? 'legend' : ''}" onclick="selectChar(${chars.indexOf(c)})">
                         <div class="avatar" style="background:${c.color || '#7c3aed'};">${c.emoji || '🧙'}${c.avatar ? '<img src="'+c.avatar+'">' : ''}</div>
-                        <div class="name">${esc(c.name)}</div>
+                        <div class="name">${esc(c.name)}${c.premiumUnlocked ? ' 👑' : ''}</div>
                         <div class="desc">${esc(c.desc || '')}</div>
                         <span style="font-size:10px;color:#fbbf24;">Lv.${c.level || 1}</span>
                     </div>
@@ -827,15 +1039,30 @@
         // ============================================================
 
         function selectChar(i) {
-            currentChar = chars[i];
+            const char = chars[i];
+            if (char.premiumCost && premium < char.premiumCost) {
+                alert(`⚡ 프리미엄 토큰 ${char.premiumCost}개가 필요해요!`);
+                return;
+            }
+            if (char.premiumCost) {
+                premium -= char.premiumCost;
+                localStorage.setItem('dc_premium', String(premium));
+                alert(`✅ ${char.name} 언락 완료!`);
+                saveAll();
+                updateUI();
+                // 캐릭터에 프리미엄 언락 표시
+                char.premiumUnlocked = true;
+                localStorage.setItem('dc_chars', JSON.stringify(chars));
+            }
+            currentChar = char;
             document.getElementById('chatPanel').classList.add('active');
-            document.getElementById('currentCharName').textContent = currentChar.emoji + ' ' + currentChar.name;
+            document.getElementById('currentCharName').textContent = char.emoji + ' ' + char.name;
             const chatArea = document.getElementById('chat');
             if (chatArea) {
                 chatArea.innerHTML = '';
-                addChatMsg('시스템', `💬 ${currentChar.emoji} ${currentChar.name}과 대화 시작`, 'sys');
-                addChatMsg('시스템', `🎭 ${currentChar.personality || '평범한 성격'}`, 'sys');
-                addChatMsg(currentChar.name, '안녕! 만나서 반가워! 😊', 'ai');
+                addChatMsg('시스템', `💬 ${char.emoji} ${char.name}과 대화 시작`, 'sys');
+                addChatMsg('시스템', `🎭 ${char.personality || '평범한 성격'}`, 'sys');
+                addChatMsg(char.name, '안녕! 만나서 반가워! 😊', 'ai');
             }
             document.getElementById('chatInput').focus();
             switchPage('chat');
@@ -887,7 +1114,14 @@
                 return;
             }
 
-            const cost = type === 'premium' ? { premium: 1, gold: 0 } : { premium: 0, gold: 5 };
+            let cost;
+            if (type === 'premium') {
+                cost = { premium: 1, gold: 0 };
+                // 프리미엄 이미지 미션 체크
+            } else {
+                cost = { premium: 0, gold: 5 };
+            }
+
             if (gold < cost.gold) {
                 alert(`🪙 골드 부족! (${cost.gold}개 필요)`);
                 return;
@@ -930,6 +1164,16 @@
                 previewEl.style.color = '#34d399';
 
                 addChatMsg('🎨 AI', `✨ ${type === 'premium' ? '⚡ 프리미엄' : '🪙 일반'} 이미지 생성 완료!`, 'sys');
+
+                // 프리미엄 이미지 생성 미션 체크
+                if (type === 'premium') {
+                    const premiumImageMission = missions.find(m => m.id === 'premium_image_5');
+                    if (premiumImageMission && !premiumImageMission.claimed) {
+                        premiumImageMission.progress = (premiumImageMission.progress || 0) + 1;
+                        localStorage.setItem('dc_missions', JSON.stringify(missions));
+                        checkMissions();
+                    }
+                }
 
             } catch (error) {
                 console.error('이미지 생성 오류:', error);
@@ -1159,7 +1403,7 @@
                 groq: { gold: 3, premium: 0 },
                 openai: { gold: 3, premium: 0 },
                 mistral: { gold: 3, premium: 0 },
-                premium: { gold: 0, premium: 1 }
+                premium: { gold: 0, premium: 2 }
             };
             const cost = costs[mode] || costs.deepass;
             if (gold < cost.gold) { addError(`🪙 골드 부족! (${cost.gold}개 필요)`); return false; }
@@ -1186,14 +1430,59 @@
             if (!useCurrency(currentMode)) return;
 
             addChatMsg('나', text, 'user');
-            chatHistory.push({ user: text, time: new Date().toISOString() });
+            chatHistory.push({ user: text, time: new Date().toISOString(), mode: currentMode });
 
             try {
                 let aiResponse = '';
                 let usedApi = false;
 
-                // Groq API 호출 (Groq 모드 또는 딥패스 모드일 때)
-                if (currentMode === 'groq' || currentMode === 'deepass') {
+                // 프리미엄 모드
+                if (currentMode === 'premium') {
+                    const openaiKey = localStorage.getItem('openai_key');
+                    if (openaiKey) {
+                        try {
+                            const response = await fetch(`${SERVER_URL}/api/chat/premium`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    message: text,
+                                    character: currentChar.name
+                                })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                aiResponse = data.response;
+                                usedApi = true;
+                                library.push({
+                                    title: text.slice(0, 30) + '...',
+                                    content: data.response,
+                                    source: 'premium-api',
+                                    time: new Date().toISOString()
+                                });
+                                saveAll();
+                                // 프리미엄 채팅 미션 체크
+                                const premiumChatMission = missions.find(m => m.id === 'premium_chat_10');
+                                if (premiumChatMission && !premiumChatMission.claimed) {
+                                    premiumChatMission.progress = (premiumChatMission.progress || 0) + 1;
+                                    localStorage.setItem('dc_missions', JSON.stringify(missions));
+                                    checkMissions();
+                                }
+                            } else {
+                                throw new Error(data.error || '프리미엄 API 응답 오류');
+                            }
+                        } catch (apiError) {
+                            console.warn('⚠️ 프리미엄 API 오류:', apiError.message);
+                            addError('프리미엄 API 오류: ' + apiError.message);
+                        }
+                    } else {
+                        addError('🔑 OpenAI API 키가 없어요! 프리미엄 모드는 OpenAI 키가 필요합니다.');
+                    }
+                }
+
+                // Groq API 호출 (Groq 모드 또는 딥패스 모드)
+                if ((currentMode === 'groq' || currentMode === 'deepass') && !usedApi) {
                     const groqKey = localStorage.getItem('groq_key');
                     if (groqKey) {
                         try {
@@ -1208,13 +1497,10 @@
                                     mode: currentMode
                                 })
                             });
-
                             const data = await response.json();
-
                             if (data.success) {
                                 aiResponse = data.response;
                                 usedApi = true;
-                                // 자동 학습
                                 library.push({
                                     title: text.slice(0, 30) + '...',
                                     content: data.response,
@@ -1226,10 +1512,10 @@
                                 throw new Error(data.error || 'Groq API 응답 오류');
                             }
                         } catch (apiError) {
-                            console.warn('⚠️ Groq API 오류, 폴백으로 전환:', apiError.message);
-                            addError('Groq API 오류: ' + apiError.message + ' (로컬 응답으로 대체)');
+                            console.warn('⚠️ Groq API 오류:', apiError.message);
+                            addError('Groq API 오류: ' + apiError.message);
                         }
-                    } else {
+                    } else if (currentMode === 'groq') {
                         addError('🔑 Groq API 키가 없어요! "나" 탭에서 키를 저장해주세요.');
                     }
                 }
@@ -1249,9 +1535,7 @@
                                     character: currentChar.name
                                 })
                             });
-
                             const data = await response.json();
-
                             if (data.success) {
                                 aiResponse = data.response;
                                 usedApi = true;
@@ -1289,9 +1573,7 @@
                                     character: currentChar.name
                                 })
                             });
-
                             const data = await response.json();
-
                             if (data.success) {
                                 aiResponse = data.response;
                                 usedApi = true;
@@ -1325,7 +1607,6 @@
             } catch (error) {
                 console.error('❌ 채팅 오류:', error);
                 addError('채팅 오류: ' + error.message);
-                // 최종 폴백
                 const fallback = getAIResponse(text);
                 addChatMsg(currentChar.name, fallback, 'ai');
             }
@@ -1384,7 +1665,7 @@
             addChatMsg('시스템', '📚 딥패스 기본 지식이 탑재되어 있어요!', 'sys');
             addChatMsg('시스템', '🪙 골드 100개, ⚡ 프리미엄 0개 지급 완료!', 'sys');
             addChatMsg('시스템', '💾 모든 데이터가 자동으로 저장돼요!', 'sys');
-            addChatMsg('시스템', '🚀 Groq API 실제 채팅이 활성화되었어요!', 'sys');
+            addChatMsg('시스템', '🌟 프리미엄 상점에서 전설 캐릭터를 획득하세요!', 'sys');
             addChatMsg('시스템', '☀️ 출석 체크, ⚡ 퀴즈, 🎨 이미지 생성까지!', 'sys');
             switchPage('home');
         }
@@ -1392,13 +1673,13 @@
         loadSupabaseKeys();
         setInterval(saveAll, 10000);
 
-        console.log('🧠 Deep-Co 최종 완전체 로드됨!');
+        console.log('🧠 Deep-Co 최종 완전체 (프리미엄 강화) 로드됨!');
         console.log('👤 관리자 계정: admin / 1234');
         console.log('🚀 Node.js 서버:', SERVER_URL);
         console.log('📚 지식:', library.length + '개');
         console.log('👤 캐릭터:', chars.length + '개');
         console.log('🌍 세계관:', worlds.length + '개');
-        console.log('☀️ 출석 체크, ⚡ 퀴즈, 🎨 이미지 생성 활성화!');
+        console.log('🌟 프리미엄 상점 활성화!');
         console.log('💬 Groq API 실제 채팅 연동 완료!');
     </script>
 </body>
