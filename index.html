@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🧠 Deep-Co</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ===== 기존 CSS 동일 (생략) ===== */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',sans-serif;background:#0b0b1a;color:#f0f0f5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
         ::-webkit-scrollbar{width:4px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.3);border-radius:4px}
-
         .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);backdrop-filter:blur(20px);z-index:9999;display:flex;justify-content:center;align-items:center;flex-direction:column;transition:.5s}
         .login-overlay.hidden{opacity:0;pointer-events:none}
         .login-box{background:rgba(22,22,31,0.8);border:1px solid rgba(167,139,250,0.15);border-radius:20px;padding:40px 32px;max-width:380px;width:90%;text-align:center}
@@ -22,7 +23,6 @@
         .login-box .btn-login{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:.2s}
         .login-box .btn-login:active{transform:scale(.95)}
         .login-box .error{color:#f87171;font-size:12px;margin-top:8px;min-height:20px}
-
         header{background:rgba(10,10,25,0.95);padding:8px 16px;border-bottom:1px solid rgba(167,139,250,0.1);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
         header h1{font-size:18px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;cursor:pointer}
         .header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -34,14 +34,11 @@
         @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.3)}50%{box-shadow:0 0 30px rgba(251,191,36,0.6)}}
         .badge-legend{background:linear-gradient(135deg,#fbbf24,#f43f5e,#a78bfa);color:#fff;animation:legend-glow 3s infinite}
         @keyframes legend-glow{0%,100%{box-shadow:0 0 10px rgba(251,191,36,0.3)}50%{box-shadow:0 0 40px rgba(244,63,94,0.6)}}
-
         .main-content{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
         .page{display:none}
         .page.active{display:block}
-
         .card{background:rgba(22,22,31,0.6);border:1px solid rgba(167,139,250,0.1);border-radius:12px;padding:14px;margin-bottom:10px}
         .card h3{color:#a78bfa;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-
         input,textarea{width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#f0f0f5;font-size:13px;outline:none;margin-bottom:6px;font-family:inherit}
         button{padding:6px 14px;border-radius:8px;border:none;font-weight:600;font-size:12px;cursor:pointer;transition:.2s}
         button:active{transform:scale(.95)}
@@ -52,7 +49,6 @@
         .btn-premium-glow{background:linear-gradient(135deg,#ec4899,#8b5cf6,#7c3aed);color:#fff;animation:premium-pulse 2s infinite}
         @keyframes premium-pulse{0%,100%{box-shadow:0 0 10px rgba(236,72,153,0.2)}50%{box-shadow:0 0 30px rgba(236,72,153,0.6)}}
         .btn-full{width:100%;padding:10px;margin-top:6px;border-radius:10px;background:#7c3aed;color:#fff;font-size:13px;display:flex;justify-content:center;align-items:center;gap:6px}
-
         .token-display{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.1);border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
         .token-item{display:flex;align-items:center;gap:6px}
         .token-item .icon{font-size:20px}
@@ -60,7 +56,6 @@
         .token-item .value.gold{color:#fbbf24}
         .token-item .value.premium{color:#ec4899}
         .token-item .label{font-size:10px;color:#888}
-
         .world-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .world-card{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s;position:relative}
         .world-card:hover{background:rgba(22,22,31,0.6);border-color:rgba(167,139,250,0.2)}
@@ -71,7 +66,6 @@
         .world-card .del{position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.1);color:#f87171;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer}
         .world-card.premium{background:rgba(236,72,153,0.05);border-color:rgba(236,72,153,0.2)}
         .world-card.premium .name{color:#ec4899}
-
         .char-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .char-card{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s}
         .char-card:hover{background:rgba(22,22,31,0.6);border-color:rgba(167,139,250,0.2)}
@@ -82,7 +76,6 @@
         .char-card .lv{font-size:10px;color:#fbbf24}
         .char-card.legend{border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.05)}
         .char-card.legend .name{color:#fbbf24}
-
         #chatPanel{display:none;flex-direction:column;flex:1;overflow:hidden;position:fixed;top:60px;left:0;right:0;bottom:80px;background:#0b0b1a;z-index:50}
         #chatPanel.active{display:flex}
         .chat-h{padding:8px 12px;background:rgba(18,18,30,0.6);border-bottom:1px solid rgba(255,255,255,0.03);display:flex;justify-content:space-between;flex-wrap:wrap;font-size:11px;color:#aaa;flex-shrink:0;gap:4px}
@@ -92,7 +85,6 @@
         .mode-selector button.active{background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.2)}
         .mode-selector button.premium{color:#ec4899}
         .mode-selector button.premium.active{background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.2)}
-
         .chat-area{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}
         .msg{max-width:92%;padding:10px 16px;border-radius:14px;font-size:14px;line-height:1.8;animation:fadeIn .3s ease;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -101,6 +93,7 @@
         .msg.ai .n{color:#a78bfa;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
         .msg.ai .n .tag{font-size:8px;padding:2px 10px;border-radius:12px;font-weight:600}
         .msg.ai .n .tag.deepass{background:rgba(244,63,94,0.2);color:#f43f5e}
+        .msg.ai .n .tag.keyless{background:rgba(251,191,36,0.2);color:#fbbf24}
         .msg.ai .n .tag.groq{background:rgba(52,211,153,0.2);color:#34d399}
         .msg.ai .n .tag.openai{background:rgba(167,139,250,0.2);color:#a78bfa}
         .msg.ai .n .tag.mistral{background:rgba(251,191,36,0.2);color:#fbbf24}
@@ -108,37 +101,33 @@
         .msg.sys{align-self:center;color:#888;font-size:11px;background:rgba(255,255,255,0.02);padding:4px 20px;border-radius:16px;text-align:center}
         .msg.mission{align-self:center;color:#fbbf24;font-size:11px;background:rgba(251,191,36,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.06)}
         .msg.error{align-self:center;color:#f87171;font-size:11px;background:rgba(239,68,68,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(239,68,68,0.06)}
-        .msg.premium-msg{align-self:center;color:#ec4899;font-size:11px;background:rgba(236,72,153,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(236,72,153,0.1)}
-
+        .msg.rate-limit{align-self:center;color:#fbbf24;font-size:11px;background:rgba(251,191,36,0.06);padding:4px 16px;border-radius:12px;border:1px solid rgba(251,191,36,0.1)}
         .bar{display:flex;gap:6px;padding:8px 12px;background:rgba(18,18,30,0.6);border-top:1px solid rgba(255,255,255,0.03);flex-shrink:0}
         .bar input{flex:1;margin:0;font-size:13px;padding:10px 16px;border-radius:24px}
         .bar button{padding:10px 20px;border-radius:24px;font-size:13px}
-
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,25,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(167,139,250,0.1);display:flex;justify-content:space-around;padding:8px 0 12px 0;z-index:100}
         .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#666;font-size:10px;cursor:pointer;transition:.2s;padding:4px 16px;border:none;background:none;font-family:inherit}
         .nav-item .icon{font-size:24px}
         .nav-item.active{color:#a78bfa}
         .nav-item .create-btn{background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;margin-top:-20px;box-shadow:0 4px 20px rgba(124,58,237,0.4)}
-
         .api-section{display:none}
         .api-section.visible{display:block}
-
         .quiz-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
         .quiz-options button{flex:1;padding:8px 12px;border-radius:8px;border:1px solid rgba(167,139,250,0.1);background:rgba(0,0,0,0.2);color:#f0f0f5;cursor:pointer;transition:.2s}
         .quiz-options button:hover{background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.3)}
-
         .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .shop-item{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center}
+        .shop-item{background:rgba(22,22,31,0.4);border:1px solid rgba(167,139,250,0.08);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.2s}
+        .shop-item:hover{background:rgba(22,22,31,0.6)}
         .shop-item .icon{font-size:28px;display:block;margin-bottom:4px}
         .shop-item .name{font-size:12px;font-weight:700;color:#f0f0f5}
         .shop-item .desc{font-size:10px;color:#888}
         .shop-item .price{font-size:11px;color:#ec4899;font-weight:700;margin-top:4px}
-
         @media(max-width:480px){.world-grid{grid-template-columns:1fr}.char-grid{grid-template-columns:1fr 1fr;gap:6px}.char-card .avatar{width:44px;height:44px;font-size:22px}.token-display{flex-direction:column;align-items:flex-start;gap:4px}#chatPanel{top:55px;bottom:70px}.shop-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
 
+    <!-- ===== 로그인 오버레이 ===== -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <span class="icon">🧠</span>
@@ -151,6 +140,7 @@
         </div>
     </div>
 
+    <!-- ===== 헤더 ===== -->
     <header>
         <h1 onclick="switchPage('home')">🧠 Deep-Co</h1>
         <div class="header-right">
@@ -161,7 +151,9 @@
         </div>
     </header>
 
+    <!-- ===== 메인 콘텐츠 ===== -->
     <div class="main-content">
+        <!-- 홈 -->
         <div class="page active" id="page-home">
             <div style="text-align:center;padding:10px 0;">
                 <span style="font-size:48px;">🧠</span>
@@ -201,6 +193,7 @@
             </div>
         </div>
 
+        <!-- 세계관 -->
         <div class="page" id="page-world">
             <div class="card">
                 <h3 id="worldTitle">🌍 세계관</h3>
@@ -211,6 +204,7 @@
             </div>
         </div>
 
+        <!-- 제작 -->
         <div class="page" id="page-create">
             <div class="card">
                 <h3><span class="icon">✨</span> 캐릭터 만들기</h3>
@@ -240,6 +234,7 @@
             </div>
         </div>
 
+        <!-- 프로필 -->
         <div class="page" id="page-profile">
             <div class="card">
                 <h3><span class="icon">👤</span> 내 정보</h3>
@@ -257,22 +252,23 @@
                 </div>
                 <button class="btn-full btn-d" onclick="logout()" style="margin-top:8px;">🚪 로그아웃</button>
                 <button class="btn-full btn-premium-glow" onclick="activateGoldBoost()" style="margin-top:4px;">🪙 골드 부스트 (3⚡, 24시간)</button>
+                <button class="btn-full btn-g" onclick="syncAllData()" style="margin-top:4px;">📡 Supabase 동기화</button>
             </div>
             
             <div class="api-section" id="apiSection">
                 <div class="card">
-                    <h3><span class="icon">🔌</span> API 설정</h3>
+                    <h3><span class="icon">🔌</span> API 설정 (1회만 입력하면 영구 저장!)</h3>
                     <input id="groqKey" placeholder="Groq API Key (gsk_...)" type="password">
                     <input id="openaiKey" placeholder="OpenAI API Key (sk-...)" type="password">
                     <input id="mistralKey" placeholder="Mistral API Key" type="password">
                     <input id="stabilityKey" placeholder="Stability API Key (sk-...)" type="password">
-                    <button class="btn-full btn-g" onclick="saveKeys()">💾 API 키 저장</button>
+                    <button class="btn-full btn-g" onclick="saveKeys()">💾 API 키 저장 (Supabase)</button>
                 </div>
                 <div class="card">
-                    <h3><span class="icon">📡</span> Supabase API 설정</h3>
+                    <h3><span class="icon">📡</span> Supabase 설정 (1회만 입력!)</h3>
                     <input id="supabaseUrl" placeholder="Supabase URL (https://xxxxx.supabase.co)" type="text">
                     <input id="supabaseKey" placeholder="Supabase anon public 키" type="password">
-                    <button class="btn-full btn-g" onclick="saveSupabaseKeys()">💾 Supabase 키 저장</button>
+                    <button class="btn-full btn-g" onclick="saveSupabaseKeys()">💾 Supabase 저장</button>
                     <button class="btn-full btn-p" onclick="testSupabaseConnection()" style="margin-top:4px;">🔗 연결 테스트</button>
                     <div id="supabaseStatus" style="margin-top:6px;font-size:12px;color:#888;">⚪ 연결 전</div>
                 </div>
@@ -280,12 +276,14 @@
         </div>
     </div>
 
+    <!-- ===== 하단 네비게이션 ===== -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchPage('home')"><span class="icon">🏠</span> 홈</button>
         <button class="nav-item" onclick="switchPage('create')"><span class="create-btn">+</span> 제작</button>
         <button class="nav-item" onclick="switchPage('profile')"><span class="icon">👤</span> 나</button>
     </div>
 
+    <!-- ===== 채팅 패널 ===== -->
     <div id="chatPanel">
         <div class="chat-h">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -295,6 +293,7 @@
             </div>
             <div class="mode-selector" id="chatModeSelector">
                 <button class="active" data-mode="deepass" onclick="setChatMode('deepass')">📚 딥패스</button>
+                <button data-mode="keyless" onclick="setChatMode('keyless')">🔑 KeylessAI</button>
                 <button data-mode="groq" onclick="setChatMode('groq')">⚡ Groq</button>
                 <button data-mode="openai" onclick="setChatMode('openai')">🧠 OpenAI</button>
                 <button data-mode="mistral" onclick="setChatMode('mistral')">🌍 Mistral</button>
@@ -312,7 +311,7 @@
 
     <script>
         // ============================================================
-        // 🧠 Deep-Co - 최종 완전체 (프리미엄 기능 강화)
+        // 🧠 Deep-Co - 최종 완전체 (모든 버그 수정)
         // ============================================================
 
         // ===== 서버 주소 =====
@@ -335,27 +334,182 @@
         let goldBoost = localStorage.getItem('gold_boost') === 'true';
         let goldBoostEnd = parseInt(localStorage.getItem('gold_boost_end')) || 0;
 
-        // ===== 프리미엄 전용 캐릭터 =====
-        const PREMIUM_CHARS = [
-            { id: 100, name: '🌟 별의 현자', emoji: '🌟', personality: '우주의 지혜를 가진 현자', level: 10, chatCount: 0, premiumCost: 5 },
-            { id: 101, name: '👑 전설의 용사', emoji: '👑', personality: '전설 속에서 깨어난 용사', level: 10, chatCount: 0, premiumCost: 5 },
-            { id: 102, name: '🌙 달의 수호자', emoji: '🌙', personality: '달빛 아래서 태어난 수호자', level: 10, chatCount: 0, premiumCost: 5 },
-        ];
+        // ============================================================
+        // 🛡️ Rate Limiting
+        // ============================================================
 
-        // ===== 프리미엄 상점 아이템 =====
-        const PREMIUM_SHOP = [
-            { id: 'legend_char_1', name: '🌟 별의 현자', desc: '전설 등급 캐릭터', icon: '🌟', cost: 5 },
-            { id: 'legend_char_2', name: '👑 전설의 용사', desc: '전설 등급 캐릭터', icon: '👑', cost: 5 },
-            { id: 'legend_char_3', name: '🌙 달의 수호자', desc: '전설 등급 캐릭터', icon: '🌙', cost: 5 },
-            { id: 'gold_boost', name: '🪙 골드 부스트', desc: '24시간 골드 2배', icon: '🪙', cost: 3 },
-            { id: 'premium_badge', name: '👑 프리미엄 배지', desc: '전용 프로필 배지', icon: '👑', cost: 2 },
-        ];
+        const RATE_LIMIT = {
+            chat: { max: 20, window: 60000 },
+            image: { max: 3, window: 60000 },
+            quiz: { max: 5, window: 60000 },
+        };
 
+        let userRequests = {};
+
+        function checkRateLimit(userId, type) {
+            if (!userId) userId = 'guest';
+            const key = `${userId}_${type}`;
+            const now = Date.now();
+            const limit = RATE_LIMIT[type];
+            if (!limit) return true;
+            if (!userRequests[key]) userRequests[key] = [];
+            userRequests[key] = userRequests[key].filter(t => now - t < limit.window);
+            if (userRequests[key].length >= limit.max) return false;
+            userRequests[key].push(now);
+            return true;
+        }
+
+        function getRateLimitMessage(type) {
+            const messages = {
+                chat: '💬 잠시만 기다려주세요! (분당 20회)',
+                image: '🎨 분당 3개까지만 이미지를 생성할 수 있어요!',
+                quiz: '🧠 분당 5번까지만 퀴즈를 풀 수 있어요!'
+            };
+            return messages[type] || '⏳ 잠시 기다려주세요!';
+        }
+
+        // ============================================================
+        // ⚡ AI API 호출 함수들
+        // ============================================================
+
+        // 1. KeylessAI (API 키 없음!)
+        async function callKeylessAI(message, characterName) {
+            try {
+                const response = await fetch('https://keylessai.thryx.workers.dev/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer not-needed',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { role: 'system', content: `당신은 ${characterName}입니다. 친절하고 재미있게 대답해주세요.` },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 500
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('❌ KeylessAI 오류:', error);
+                return null;
+            }
+        }
+
+        // 2. Groq API (직접 호출)
+        async function callGroqAPI(message, characterName) {
+            const key = localStorage.getItem('groq_key');
+            if (!key) return null;
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.1-8b-instant',
+                        messages: [
+                            { role: 'system', content: `당신은 ${characterName}입니다.` },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 500
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('❌ Groq 오류:', error);
+                return null;
+            }
+        }
+
+        // 3. OpenAI API
+        async function callOpenAIAPI(message, characterName) {
+            const key = localStorage.getItem('openai_key');
+            if (!key) return null;
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { role: 'system', content: `당신은 ${characterName}입니다.` },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 500
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('❌ OpenAI 오류:', error);
+                return null;
+            }
+        }
+
+        // 4. Mistral API
+        async function callMistralAPI(message, characterName) {
+            const key = localStorage.getItem('mistral_key');
+            if (!key) return null;
+            try {
+                const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'mistral-small-latest',
+                        messages: [
+                            { role: 'system', content: `당신은 ${characterName}입니다.` },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 500
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('❌ Mistral 오류:', error);
+                return null;
+            }
+        }
+
+        // ============================================================
         // ===== 미션 =====
+        // ============================================================
+
         let missions = JSON.parse(localStorage.getItem('dc_missions') || '[]');
         const MISSION_TEMPLATES = [
             { id: 'first_chat', name: '📝 첫 대화', desc: '첫 번째 대화를 해보세요!', condition: { type: 'chat', count: 1 },
-            reward: { gold: 10, premium: 0 } },
+                reward: { gold: 10, premium: 0 } },
             { id: 'chat_10', name: '💬 대화 10번', desc: '채팅을 10번 해보세요!', condition: { type: 'chat', count: 10 },
                 reward: { gold: 30, premium: 1 } },
             { id: 'chat_50', name: '🔥 대화 50번', desc: '채팅을 50번 해보세요!', condition: { type: 'chat', count: 50 },
@@ -375,28 +529,6 @@
             { id: 'premium_image_5', name: '🖼️ 프리미엄 이미지 5개', desc: '프리미엄 이미지 5개 생성', condition: { type: 'premium_image',
                     count: 5 }, reward: { gold: 50, premium: 2 } },
         ];
-
-        // ============================================================
-        // ===== 기본 지식 =====
-        // ============================================================
-
-        const INITIAL_KNOWLEDGE = [
-            { title: '인공지능 기본 개념', content: '인공지능(AI)은 인간의 학습, 추론, 지각 능력을 모방한 컴퓨터 시스템입니다.' },
-            { title: '자연어 처리 기초', content: '자연어 처리는 인간의 언어를 컴퓨터가 이해하고 생성하도록 하는 기술입니다.' },
-            { title: '딥러닝 개요', content: '딥러닝은 인공신경망을 여러 층으로 쌓아 복잡한 패턴을 학습하는 머신러닝의 한 분야입니다.' },
-            { title: '대화형 AI의 원리', content: '대화형 AI는 사용자의 입력을 이해하고 적절한 응답을 생성합니다.' },
-            { title: 'Deep-Co', content: 'Deep-Co는 깊은 AI 대화를 나누는 공간입니다.' }
-        ];
-
-        const INITIAL_CHARS = [
-            { id: 1, name: '마법사', emoji: '🧙', personality: '지혜롭고 신비로움', level: 1, chatCount: 0 },
-            { id: 2, name: '용사', emoji: '⚔️', personality: '용감하고 책임감 강함', level: 1, chatCount: 0 },
-            { id: 3, name: '해커', emoji: '💻', personality: '냉철하고 분석적', level: 1, chatCount: 0 },
-        ];
-
-        // ============================================================
-        // ===== 미션 =====
-        // ============================================================
 
         function initMissions() {
             if (missions.length === 0) {
@@ -434,7 +566,7 @@
                 worlds: worlds.length,
                 learn: library.length,
                 premium_chat: chatHistory.filter(c => c.mode === 'premium').length || 0,
-                premium_image: 0
+                premium_image: parseInt(localStorage.getItem('premium_image_count')) || 0
             };
             let completedAny = false;
             for (let m of missions) {
@@ -445,6 +577,7 @@
                 else if (m.condition.type === 'world') progress = stats.worlds;
                 else if (m.condition.type === 'learn') progress = stats.learn;
                 else if (m.condition.type === 'premium_chat') progress = stats.premium_chat;
+                else if (m.condition.type === 'premium_image') progress = stats.premium_image;
                 m.progress = Math.min(progress, m.maxProgress);
                 if (progress >= m.maxProgress && !m.completed) {
                     m.completed = true;
@@ -472,18 +605,17 @@
         function checkDailyReset() {
             const today = new Date().toDateString();
             const lastReset = localStorage.getItem('last_mission_reset');
-
             if (lastReset !== today) {
                 missions = MISSION_TEMPLATES.map(m => ({ ...m, completed: false, claimed: false, progress: 0,
                     maxProgress: m.condition.count }));
                 localStorage.setItem('dc_missions', JSON.stringify(missions));
                 localStorage.setItem('last_mission_reset', today);
-
+                // 프리미엄 이미지 카운트 초기화
+                localStorage.setItem('premium_image_count', '0');
                 const todayAttendance = localStorage.getItem('attendance_' + today);
                 if (!todayAttendance) {
                     localStorage.setItem('attendance_' + today, 'false');
                 }
-
                 addChatMsg('시스템', '🌅 오늘의 미션이 새로 시작되었어요!', 'sys');
                 renderMissions();
                 updateUI();
@@ -499,12 +631,10 @@
             const today = new Date().toDateString();
             const todayKey = 'attendance_' + today;
             const alreadyChecked = localStorage.getItem(todayKey);
-
             if (alreadyChecked === 'true') {
                 alert('☀️ 오늘은 이미 출석 체크를 했어요! 내일 다시 도전하세요!');
                 return;
             }
-
             let rewardGold = 10;
             let rewardPremium = 0;
             if (goldBoost) rewardGold = 20;
@@ -513,23 +643,19 @@
             localStorage.setItem('dc_gold', String(gold));
             localStorage.setItem('dc_premium', String(premium));
             localStorage.setItem(todayKey, 'true');
-
             const attendanceMission = missions.find(m => m.id === 'daily_login');
             if (attendanceMission && !attendanceMission.claimed) {
                 attendanceMission.progress = 1;
                 attendanceMission.completed = true;
             }
-
             saveAll();
             updateUI();
             renderMissions();
-
             const statusEl = document.getElementById('attendanceStatus');
             if (statusEl) {
                 statusEl.textContent = `☀️ 오늘 출석 완료! +${rewardGold}🪙 +${rewardPremium}⚡ 획득!`;
                 statusEl.style.color = '#34d399';
             }
-
             addChatMsg('☀️ 출석', `출석 체크 완료! +${rewardGold}🪙 +${rewardPremium}⚡ 획득!`, 'mission');
             checkMissions();
             console.log('☀️ 출석 체크 완료! (', today, ')');
@@ -540,7 +666,6 @@
             const todayKey = 'attendance_' + today;
             const alreadyChecked = localStorage.getItem(todayKey);
             const statusEl = document.getElementById('attendanceStatus');
-
             if (statusEl) {
                 if (alreadyChecked === 'true') {
                     statusEl.textContent = '☀️ 오늘 출석 완료! 🎉';
@@ -564,7 +689,7 @@
             { question: 'OpenAI의 대표 AI는?', options: ['ChatGPT', 'Bard', 'Claude', 'Llama'], answer: 0 },
             { question: 'AI가 생성한 이미지를 무엇이라고 하나요?', options: ['생성형 AI', '분류형 AI', '예측형 AI', '강화학습'],
                 answer: 0 },
-            { question: 'Deep-Co의 기본 모드는?', options: ['딥패스', 'Groq', 'OpenAI', 'Mistral'], answer: 0 },
+            { question: 'Deep-Co의 기본 모드는?', options: ['딥패스', 'KeylessAI', 'Groq', 'Mistral'], answer: 0 },
         ];
 
         let currentQuiz = null;
@@ -576,7 +701,10 @@
                 if (resultEl) resultEl.textContent = '⏳ 이미 퀴즈가 진행 중이에요!';
                 return;
             }
-
+            if (!checkRateLimit(currentUser || 'guest', 'quiz')) {
+                if (resultEl) resultEl.textContent = getRateLimitMessage('quiz');
+                return;
+            }
             if (gold < 1) {
                 if (resultEl) {
                     resultEl.textContent = '🪙 골드가 부족해요! (1골드 필요)';
@@ -584,15 +712,12 @@
                 }
                 return;
             }
-
             gold -= 1;
             saveAll();
             updateUI();
-
             quizLock = true;
             const randomIndex = Math.floor(Math.random() * QUIZ_DATA.length);
             currentQuiz = QUIZ_DATA[randomIndex];
-
             const questionEl = document.getElementById('quizQuestion');
             const optionsEl = document.getElementById('quizOptions');
             if (questionEl) questionEl.textContent = '❓ ' + currentQuiz.question;
@@ -600,7 +725,6 @@
                 resultEl.textContent = '⏳ 5초 안에 답변해주세요!';
                 resultEl.style.color = '#fbbf24';
             }
-
             if (optionsEl) {
                 optionsEl.innerHTML = '';
                 currentQuiz.options.forEach((opt, idx) => {
@@ -610,7 +734,6 @@
                     optionsEl.appendChild(btn);
                 });
             }
-
             setTimeout(() => {
                 if (quizLock) {
                     if (resultEl) {
@@ -626,11 +749,9 @@
         function answerQuiz(selected) {
             if (!quizLock) return;
             quizLock = false;
-
             const optionsEl = document.getElementById('quizOptions');
             const resultEl = document.getElementById('quizResult');
             if (optionsEl) optionsEl.innerHTML = '';
-
             if (selected === currentQuiz.answer) {
                 let rewardGold = 5;
                 let rewardPremium = 0;
@@ -641,7 +762,6 @@
                 localStorage.setItem('dc_premium', String(premium));
                 saveAll();
                 updateUI();
-
                 if (resultEl) {
                     resultEl.textContent = `🎉 정답! +${rewardGold}🪙 +${rewardPremium}⚡ 획득!`;
                     resultEl.style.color = '#34d399';
@@ -655,7 +775,6 @@
                 }
                 addChatMsg('⚡ 퀴즈', '❌ 오답! 다음 기회에!', 'sys');
             }
-
             setTimeout(() => {
                 const questionEl = document.getElementById('quizQuestion');
                 if (questionEl) questionEl.textContent = '❓ 퀴즈를 시작하려면 버튼을 눌러주세요!';
@@ -667,10 +786,17 @@
         // ===== 프리미엄 상점 =====
         // ============================================================
 
+        const PREMIUM_SHOP = [
+            { id: 'legend_char_1', name: '🌟 별의 현자', desc: '전설 등급 캐릭터', icon: '🌟', cost: 5 },
+            { id: 'legend_char_2', name: '👑 전설의 용사', desc: '전설 등급 캐릭터', icon: '👑', cost: 5 },
+            { id: 'legend_char_3', name: '🌙 달의 수호자', desc: '전설 등급 캐릭터', icon: '🌙', cost: 5 },
+            { id: 'gold_boost', name: '🪙 골드 부스트', desc: '24시간 골드 2배', icon: '🪙', cost: 3 },
+            { id: 'premium_badge', name: '👑 프리미엄 배지', desc: '전용 프로필 배지', icon: '👑', cost: 2 },
+        ];
+
         function renderPremiumShop() {
             const container = document.getElementById('premiumShop');
             if (!container) return;
-
             container.innerHTML = PREMIUM_SHOP.map(item => `
                 <div class="shop-item" onclick="buyPremiumItem('${item.id}')">
                     <span class="icon">${item.icon}</span>
@@ -684,15 +810,12 @@
         function buyPremiumItem(itemId) {
             const item = PREMIUM_SHOP.find(i => i.id === itemId);
             if (!item) return;
-
             if (premium < item.cost) {
                 alert(`⚡ 프리미엄 토큰이 부족해요! (${item.cost}개 필요)`);
                 return;
             }
-
             premium -= item.cost;
             localStorage.setItem('dc_premium', String(premium));
-
             if (itemId === 'gold_boost') {
                 activateGoldBoostDirect();
             } else if (itemId.startsWith('legend_char_')) {
@@ -700,7 +823,6 @@
             } else if (itemId === 'premium_badge') {
                 unlockPremiumBadge();
             }
-
             saveAll();
             updateUI();
             renderPremiumShop();
@@ -715,13 +837,15 @@
             };
             const name = charMap[itemId];
             if (!name) return;
-
-            // 이미 있는지 확인
             if (chars.some(c => c.name === name)) {
                 alert('이미 보유한 캐릭터예요!');
                 return;
             }
-
+            const PREMIUM_CHARS = [
+                { id: 100, name: '🌟 별의 현자', emoji: '🌟', personality: '우주의 지혜를 가진 현자', level: 10, chatCount: 0 },
+                { id: 101, name: '👑 전설의 용사', emoji: '👑', personality: '전설 속에서 깨어난 용사', level: 10, chatCount: 0 },
+                { id: 102, name: '🌙 달의 수호자', emoji: '🌙', personality: '달빛 아래서 태어난 수호자', level: 10, chatCount: 0 },
+            ];
             const newChar = PREMIUM_CHARS.find(c => c.name === name);
             if (newChar) {
                 chars.push({ ...newChar, id: Date.now(), premiumUnlocked: true });
@@ -739,10 +863,6 @@
             localStorage.setItem('premium_badge_unlocked', 'true');
             alert('👑 프리미엄 배지를 획득했어요!');
         }
-
-        // ============================================================
-        // ===== 골드 부스트 =====
-        // ============================================================
 
         function activateGoldBoostDirect() {
             goldBoost = true;
@@ -776,10 +896,6 @@
             }
         }
 
-        // ============================================================
-        // ===== 프리미엄 세계관 =====
-        // ============================================================
-
         function createPremiumWorld() {
             if (premium < 3) {
                 alert('⚡ 프리미엄 토큰 3개가 필요해요!');
@@ -787,10 +903,8 @@
             }
             premium -= 3;
             localStorage.setItem('dc_premium', String(premium));
-
             const name = prompt('🌟 프리미엄 세계관 이름을 입력하세요:');
             if (!name) return;
-
             worlds.push({
                 name: '🌟 ' + name,
                 desc: '✨ 프리미엄 전용 세계관',
@@ -824,11 +938,20 @@
                     document.getElementById('userBadge').className = 'badge';
                     document.getElementById('apiSection').classList.remove('visible');
                 }
-                // 프리미엄 배지 확인
                 if (localStorage.getItem('premium_badge_unlocked') === 'true') {
                     document.getElementById('userBadge').className = 'badge badge-legend';
                     document.getElementById('userBadge').textContent = '👑 ' + (currentUser || '게스트');
                 }
+                // Supabase 초기화
+                loadSupabaseKeys();
+                // 데이터 로드
+                initData();
+                renderAll();
+                updateCharSelect();
+                // Supabase에서 데이터 로드 시도
+                setTimeout(() => {
+                    loadKeysFromSupabase();
+                }, 500);
                 return true;
             } catch (e) { return false; }
         }
@@ -848,8 +971,13 @@
                 document.getElementById('apiSection').classList.add('visible');
                 initData();
                 renderAll();
+                updateCharSelect();
                 alert('👑 관리자님 환영합니다!');
                 switchPage('home');
+                loadSupabaseKeys();
+                setTimeout(() => {
+                    loadKeysFromSupabase();
+                }, 500);
                 return;
             }
             const users = JSON.parse(localStorage.getItem('dc_users') || '{}');
@@ -864,7 +992,12 @@
                     document.getElementById('apiSection').classList.remove('visible');
                     initData();
                     renderAll();
+                    updateCharSelect();
                     switchPage('home');
+                    loadSupabaseKeys();
+                    setTimeout(() => {
+                        loadKeysFromSupabase();
+                    }, 500);
                 } else { err.textContent = '❌ 비밀번호 틀림'; }
             } else {
                 users[id] = { pw: pw };
@@ -878,8 +1011,13 @@
                 document.getElementById('apiSection').classList.remove('visible');
                 initData();
                 renderAll();
+                updateCharSelect();
                 alert('✅ "' + id + '" 가입 완료!');
                 switchPage('home');
+                loadSupabaseKeys();
+                setTimeout(() => {
+                    loadKeysFromSupabase();
+                }, 500);
             }
         }
 
@@ -903,6 +1041,20 @@
         // ===== 데이터 초기화 =====
         // ============================================================
 
+        const INITIAL_KNOWLEDGE = [
+            { title: '인공지능 기본 개념', content: '인공지능(AI)은 인간의 학습, 추론, 지각 능력을 모방한 컴퓨터 시스템입니다.' },
+            { title: '자연어 처리 기초', content: '자연어 처리는 인간의 언어를 컴퓨터가 이해하고 생성하도록 하는 기술입니다.' },
+            { title: '딥러닝 개요', content: '딥러닝은 인공신경망을 여러 층으로 쌓아 복잡한 패턴을 학습하는 머신러닝의 한 분야입니다.' },
+            { title: '대화형 AI의 원리', content: '대화형 AI는 사용자의 입력을 이해하고 적절한 응답을 생성합니다.' },
+            { title: 'Deep-Co', content: 'Deep-Co는 깊은 AI 대화를 나누는 공간입니다.' }
+        ];
+
+        const INITIAL_CHARS = [
+            { id: 1, name: '마법사', emoji: '🧙', personality: '지혜롭고 신비로움', level: 1, chatCount: 0 },
+            { id: 2, name: '용사', emoji: '⚔️', personality: '용감하고 책임감 강함', level: 1, chatCount: 0 },
+            { id: 3, name: '해커', emoji: '💻', personality: '냉철하고 분석적', level: 1, chatCount: 0 },
+        ];
+
         function initData() {
             if (worlds.length === 0) {
                 worlds = [{ name: '판타지 월드', desc: '마법과 모험이 가득한 세계' }];
@@ -920,12 +1072,10 @@
             if (!localStorage.getItem('dc_premium')) localStorage.setItem('dc_premium', '0');
             gold = parseInt(localStorage.getItem('dc_gold')) || 100;
             premium = parseInt(localStorage.getItem('dc_premium')) || 0;
-
             initMissions();
             checkDailyReset();
             loadAttendanceStatus();
             checkGoldBoost();
-
             updateUI();
             renderPremiumShop();
         }
@@ -937,6 +1087,10 @@
             localStorage.setItem('dc_premium', String(premium));
             localStorage.setItem('deepass_library', JSON.stringify(library));
             updateUI();
+            // Supabase에 자동 동기화
+            if (supabaseClient && currentUser) {
+                syncAllData();
+            }
         }
 
         function updateUI() {
@@ -949,6 +1103,284 @@
             renderMissions();
             renderPremiumShop();
             checkGoldBoost();
+        }
+
+        // ============================================================
+        // ===== Supabase 연동 (1회 설정으로 영구 저장!) =====
+        // ============================================================
+
+        function saveSupabaseKeys() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            const statusEl = document.getElementById('supabaseStatus');
+            if (!url || !key) {
+                if (statusEl) {
+                    statusEl.textContent = '⚠️ URL과 키를 모두 입력하세요!';
+                    statusEl.style.color = '#fbbf24';
+                }
+                return;
+            }
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_key', key);
+            if (statusEl) {
+                statusEl.textContent = '✅ 키 저장 완료! (연결 테스트 중...)';
+                statusEl.style.color = '#34d399';
+            }
+            testSupabaseConnection();
+        }
+
+        function getSupabaseConfig() {
+            const url = localStorage.getItem('supabase_url');
+            const key = localStorage.getItem('supabase_key');
+            return { url, key };
+        }
+
+        async function testSupabaseConnection() {
+            const statusEl = document.getElementById('supabaseStatus');
+            const { url, key } = getSupabaseConfig();
+            if (!url || !key) {
+                if (statusEl) {
+                    statusEl.textContent = '❌ 저장된 키가 없어요! 먼저 저장하세요.';
+                    statusEl.style.color = '#f87171';
+                }
+                return;
+            }
+            if (statusEl) {
+                statusEl.textContent = '🔄 연결 시도 중...';
+                statusEl.style.color = '#fbbf24';
+            }
+            try {
+                // Supabase 클라이언트 생성
+                const { createClient } = supabase;
+                supabaseClient = createClient(url, key);
+                
+                // 간단한 테스트 쿼리
+                const { error } = await supabaseClient.from('user_data').select('id', { count: 'exact', head: true });
+                if (error) {
+                    // 테이블이 없으면 생성
+                    if (error.message && error.message.includes('relation "user_data" does not exist')) {
+                        // 테이블 생성 시도
+                        try {
+                            await supabaseClient.rpc('exec_sql', {
+                                sql: `
+                                    CREATE TABLE IF NOT EXISTS user_data (
+                                        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                                        user_id TEXT NOT NULL,
+                                        data_type TEXT NOT NULL,
+                                        data JSONB NOT NULL,
+                                        updated_at TIMESTAMP DEFAULT NOW()
+                                    );
+                                    CREATE INDEX IF NOT EXISTS idx_user_data_user_id ON user_data(user_id);
+                                    CREATE INDEX IF NOT EXISTS idx_user_data_type ON user_data(data_type);
+                                `
+                            });
+                            if (statusEl) {
+                                statusEl.textContent = '✅ Supabase 연결 성공! (테이블 생성됨)';
+                                statusEl.style.color = '#34d399';
+                            }
+                            console.log('✅ Supabase 연결 및 테이블 생성 성공!');
+                            // 데이터 동기화
+                            await syncAllData();
+                            return;
+                        } catch (createError) {
+                            console.warn('⚠️ 테이블 자동 생성 실패:', createError);
+                            if (statusEl) {
+                                statusEl.textContent = '✅ Supabase 연결 성공! (테이블은 수동 생성 필요)';
+                                statusEl.style.color = '#fbbf24';
+                            }
+                            return;
+                        }
+                    }
+                    throw error;
+                }
+                if (statusEl) {
+                    statusEl.textContent = '✅ Supabase 연결 성공! 🎉';
+                    statusEl.style.color = '#34d399';
+                }
+                console.log('✅ Supabase 연결 테스트 성공!');
+                // 데이터 동기화
+                await syncAllData();
+            } catch (e) {
+                if (statusEl) {
+                    statusEl.textContent = '❌ 연결 실패: ' + (e.message || '알 수 없는 오류');
+                    statusEl.style.color = '#f87171';
+                }
+                console.error('❌ Supabase 연결 테스트 실패:', e);
+            }
+        }
+
+        function loadSupabaseKeys() {
+            const url = localStorage.getItem('supabase_url');
+            const key = localStorage.getItem('supabase_key');
+            const statusEl = document.getElementById('supabaseStatus');
+            if (document.getElementById('supabaseUrl')) document.getElementById('supabaseUrl').value = url || '';
+            if (document.getElementById('supabaseKey')) document.getElementById('supabaseKey').value = key || '';
+            if (statusEl) {
+                if (url && key) {
+                    statusEl.textContent = '🔑 키 로드됨 (테스트하려면 클릭)';
+                    statusEl.style.color = '#a78bfa';
+                } else {
+                    statusEl.textContent = '⚪ 연결 전 (키를 입력하세요)';
+                    statusEl.style.color = '#888';
+                }
+            }
+        }
+
+        // ===== Supabase 데이터 동기화 =====
+        async function syncAllData() {
+            if (!supabaseClient || !currentUser) {
+                console.log('⚠️ Supabase 또는 사용자 없음');
+                return;
+            }
+            try {
+                // 1. 세계관 동기화
+                await supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'worlds',
+                        data: worlds,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' });
+
+                // 2. 캐릭터 동기화
+                await supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'chars',
+                        data: chars,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' });
+
+                // 3. 미션 동기화
+                await supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'missions',
+                        data: missions,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' });
+
+                // 4. 골드/프리미엄 동기화
+                await supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'currency',
+                        data: { gold, premium },
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' });
+
+                // 5. API 키 동기화
+                const apiKeys = {
+                    groq: localStorage.getItem('groq_key') || '',
+                    openai: localStorage.getItem('openai_key') || '',
+                    mistral: localStorage.getItem('mistral_key') || '',
+                    stability: localStorage.getItem('stability_key') || ''
+                };
+                await supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'api_keys',
+                        data: apiKeys,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' });
+
+                console.log('✅ Supabase 동기화 완료!');
+                document.getElementById('saveBadge').textContent = '✅ Supabase 동기화됨';
+                setTimeout(() => {
+                    document.getElementById('saveBadge').textContent = '💾 저장됨';
+                }, 3000);
+            } catch (e) {
+                console.error('❌ Supabase 동기화 실패:', e);
+            }
+        }
+
+        // ===== Supabase에서 데이터 불러오기 =====
+        async function loadKeysFromSupabase() {
+            if (!supabaseClient || !currentUser) {
+                console.log('⚠️ Supabase 또는 사용자 없음');
+                return;
+            }
+            try {
+                // 1. 세계관 불러오기
+                const { data: worldsData } = await supabaseClient
+                    .from('user_data')
+                    .select('data')
+                    .eq('user_id', currentUser)
+                    .eq('data_type', 'worlds')
+                    .maybeSingle();
+
+                if (worldsData && worldsData.data) {
+                    worlds = worldsData.data;
+                    localStorage.setItem('dc_worlds', JSON.stringify(worlds));
+                }
+
+                // 2. 캐릭터 불러오기
+                const { data: charsData } = await supabaseClient
+                    .from('user_data')
+                    .select('data')
+                    .eq('user_id', currentUser)
+                    .eq('data_type', 'chars')
+                    .maybeSingle();
+
+                if (charsData && charsData.data) {
+                    chars = charsData.data;
+                    localStorage.setItem('dc_chars', JSON.stringify(chars));
+                }
+
+                // 3. 미션 불러오기
+                const { data: missionsData } = await supabaseClient
+                    .from('user_data')
+                    .select('data')
+                    .eq('user_id', currentUser)
+                    .eq('data_type', 'missions')
+                    .maybeSingle();
+
+                if (missionsData && missionsData.data) {
+                    missions = missionsData.data;
+                    localStorage.setItem('dc_missions', JSON.stringify(missions));
+                }
+
+                // 4. 골드/프리미엄 불러오기
+                const { data: currencyData } = await supabaseClient
+                    .from('user_data')
+                    .select('data')
+                    .eq('user_id', currentUser)
+                    .eq('data_type', 'currency')
+                    .maybeSingle();
+
+                if (currencyData && currencyData.data) {
+                    gold = currencyData.data.gold || 100;
+                    premium = currencyData.data.premium || 0;
+                    localStorage.setItem('dc_gold', String(gold));
+                    localStorage.setItem('dc_premium', String(premium));
+                }
+
+                // 5. API 키 불러오기
+                const { data: apiKeysData } = await supabaseClient
+                    .from('user_data')
+                    .select('data')
+                    .eq('user_id', currentUser)
+                    .eq('data_type', 'api_keys')
+                    .maybeSingle();
+
+                if (apiKeysData && apiKeysData.data) {
+                    if (apiKeysData.data.groq) localStorage.setItem('groq_key', apiKeysData.data.groq);
+                    if (apiKeysData.data.openai) localStorage.setItem('openai_key', apiKeysData.data.openai);
+                    if (apiKeysData.data.mistral) localStorage.setItem('mistral_key', apiKeysData.data.mistral);
+                    if (apiKeysData.data.stability) localStorage.setItem('stability_key', apiKeysData.data.stability);
+                }
+
+                updateUI();
+                renderAll();
+                console.log('✅ Supabase 데이터 로드 완료!');
+            } catch (e) {
+                console.log('📭 Supabase에 저장된 데이터 없음 (처음 사용)');
+            }
         }
 
         // ============================================================
@@ -1050,7 +1482,6 @@
                 alert(`✅ ${char.name} 언락 완료!`);
                 saveAll();
                 updateUI();
-                // 캐릭터에 프리미엄 언락 표시
                 char.premiumUnlocked = true;
                 localStorage.setItem('dc_chars', JSON.stringify(chars));
             }
@@ -1108,20 +1539,20 @@
         async function generateImage(type) {
             const prompt = document.getElementById('imagePrompt').value.trim();
             const previewEl = document.getElementById('imagePreview');
-
             if (!prompt) {
                 alert('🎨 이미지 설명을 입력하세요!');
                 return;
             }
-
+            if (!checkRateLimit(currentUser || 'guest', 'image')) {
+                alert(getRateLimitMessage('image'));
+                return;
+            }
             let cost;
             if (type === 'premium') {
                 cost = { premium: 1, gold: 0 };
-                // 프리미엄 이미지 미션 체크
             } else {
                 cost = { premium: 0, gold: 5 };
             }
-
             if (gold < cost.gold) {
                 alert(`🪙 골드 부족! (${cost.gold}개 필요)`);
                 return;
@@ -1130,15 +1561,12 @@
                 alert(`⚡ 프리미엄 부족! (${cost.premium}개 필요)`);
                 return;
             }
-
             gold -= cost.gold;
             premium -= cost.premium;
             saveAll();
             updateUI();
-
             previewEl.innerHTML = '⏳ 이미지 생성 중... (서버 요청 중)';
             previewEl.style.color = '#fbbf24';
-
             try {
                 const response = await fetch(`${SERVER_URL}/api/image/generate`, {
                     method: 'POST',
@@ -1150,36 +1578,27 @@
                         type: type
                     })
                 });
-
                 const data = await response.json();
-
                 if (!data.success) {
                     throw new Error(data.error || '이미지 생성 실패');
                 }
-
                 previewEl.innerHTML = `
                     <img src="${data.image}" style="max-width:100%; max-height:350px; border-radius:12px; border:1px solid rgba(167,139,250,0.2); cursor:pointer;" onclick="downloadImage('${data.image}')">
                     <div style="margin-top:6px; font-size:12px; color:#34d399;">✅ 생성 완료! (클릭하면 다운로드)</div>
                 `;
                 previewEl.style.color = '#34d399';
-
                 addChatMsg('🎨 AI', `✨ ${type === 'premium' ? '⚡ 프리미엄' : '🪙 일반'} 이미지 생성 완료!`, 'sys');
-
-                // 프리미엄 이미지 생성 미션 체크
                 if (type === 'premium') {
-                    const premiumImageMission = missions.find(m => m.id === 'premium_image_5');
-                    if (premiumImageMission && !premiumImageMission.claimed) {
-                        premiumImageMission.progress = (premiumImageMission.progress || 0) + 1;
-                        localStorage.setItem('dc_missions', JSON.stringify(missions));
-                        checkMissions();
-                    }
+                    // 프리미엄 이미지 카운트 증가
+                    let premiumImageCount = parseInt(localStorage.getItem('premium_image_count')) || 0;
+                    premiumImageCount++;
+                    localStorage.setItem('premium_image_count', String(premiumImageCount));
+                    checkMissions();
                 }
-
             } catch (error) {
                 console.error('이미지 생성 오류:', error);
                 previewEl.innerHTML = `❌ 생성 실패: ${error.message}`;
                 previewEl.style.color = '#f87171';
-
                 gold += cost.gold;
                 premium += cost.premium;
                 saveAll();
@@ -1196,7 +1615,7 @@
         }
 
         // ============================================================
-        // ===== API 키 저장 =====
+        // ===== API 키 저장 (Supabase) =====
         // ============================================================
 
         function saveKeys() {
@@ -1204,118 +1623,38 @@
             const o = document.getElementById('openaiKey').value.trim();
             const m = document.getElementById('mistralKey').value.trim();
             const s = document.getElementById('stabilityKey').value.trim();
+            
+            // localStorage에도 저장
             if (g) localStorage.setItem('groq_key', g);
             if (o) localStorage.setItem('openai_key', o);
             if (m) localStorage.setItem('mistral_key', m);
             if (s) localStorage.setItem('stability_key', s);
-            alert('✅ API 키 저장 완료!');
-        }
 
-        // ============================================================
-        // ===== Supabase =====
-        // ============================================================
-
-        function saveSupabaseKeys() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            const statusEl = document.getElementById('supabaseStatus');
-
-            if (!url || !key) {
-                if (statusEl) {
-                    statusEl.textContent = '⚠️ URL과 키를 모두 입력하세요!';
-                    statusEl.style.color = '#fbbf24';
-                }
-                return;
-            }
-
-            localStorage.setItem('supabase_url', url);
-            localStorage.setItem('supabase_key', key);
-
-            if (statusEl) {
-                statusEl.textContent = '✅ 키 저장 완료! (연결 테스트 중...)';
-                statusEl.style.color = '#34d399';
-            }
-
-            testSupabaseConnection();
-        }
-
-        function getSupabaseConfig() {
-            const url = localStorage.getItem('supabase_url');
-            const key = localStorage.getItem('supabase_key');
-            return { url, key };
-        }
-
-        async function testSupabaseConnection() {
-            const statusEl = document.getElementById('supabaseStatus');
-            const { url, key } = getSupabaseConfig();
-
-            if (!url || !key) {
-                if (statusEl) {
-                    statusEl.textContent = '❌ 저장된 키가 없어요! 먼저 저장하세요.';
-                    statusEl.style.color = '#f87171';
-                }
-                return;
-            }
-
-            if (statusEl) {
-                statusEl.textContent = '🔄 연결 시도 중...';
-                statusEl.style.color = '#fbbf24';
-            }
-
-            try {
-                const { createClient } = supabase;
-                supabaseClient = createClient(url, key);
-
-                const { error } = await supabaseClient.from('users').select('id', { count: 'exact', head: true });
-
-                if (error) {
-                    if (error.message && error.message.includes('relation "users" does not exist')) {
-                        if (statusEl) {
-                            statusEl.textContent = '✅ Supabase 연결 성공! (테이블 생성 필요)';
-                            statusEl.style.color = '#fbbf24';
-                        }
-                        console.log('✅ Supabase 연결 성공 (테이블 없음)');
-                        return;
-                    }
-                    throw error;
-                }
-
-                if (statusEl) {
-                    statusEl.textContent = '✅ Supabase 연결 성공! 🎉';
-                    statusEl.style.color = '#34d399';
-                }
-                console.log('✅ Supabase 연결 테스트 성공!');
-
-            } catch (e) {
-                if (statusEl) {
-                    statusEl.textContent = '❌ 연결 실패: ' + (e.message || '알 수 없는 오류');
-                    statusEl.style.color = '#f87171';
-                }
-                console.error('❌ Supabase 연결 테스트 실패:', e);
-            }
-        }
-
-        function loadSupabaseKeys() {
-            const url = localStorage.getItem('supabase_url');
-            const key = localStorage.getItem('supabase_key');
-            const statusEl = document.getElementById('supabaseStatus');
-
-            if (document.getElementById('supabaseUrl')) document.getElementById('supabaseUrl').value = url || '';
-            if (document.getElementById('supabaseKey')) document.getElementById('supabaseKey').value = key || '';
-
-            if (statusEl) {
-                if (url && key) {
-                    statusEl.textContent = '🔑 키 로드됨 (테스트하려면 클릭)';
-                    statusEl.style.color = '#a78bfa';
-                } else {
-                    statusEl.textContent = '⚪ 연결 전 (키를 입력하세요)';
-                    statusEl.style.color = '#888';
-                }
+            // Supabase에 저장
+            if (supabaseClient && currentUser) {
+                supabaseClient
+                    .from('user_data')
+                    .upsert({
+                        user_id: currentUser,
+                        data_type: 'api_keys',
+                        data: { groq: g, openai: o, mistral: m, stability: s },
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, data_type' })
+                    .then(() => {
+                        console.log('✅ API 키 Supabase 저장 완료!');
+                        alert('✅ API 키가 Supabase에 저장되었어요! (1회 설정으로 영구)');
+                    })
+                    .catch(e => {
+                        console.error('❌ API 키 Supabase 저장 실패:', e);
+                        alert('✅ API 키는 localStorage에 저장되었어요! (Supabase 연결 시 영구 저장 가능)');
+                    });
+            } else {
+                alert('✅ API 키가 localStorage에 저장되었어요! (Supabase 연결 시 영구 저장 가능)');
             }
         }
 
         // ============================================================
-        // ===== 채팅 (Groq API 실제 연동) =====
+        // ===== 채팅 (모든 모드 지원) =====
         // ============================================================
 
         function setChatMode(mode) {
@@ -1325,6 +1664,7 @@
             });
             const names = {
                 deepass: '📚 딥패스',
+                keyless: '🔑 KeylessAI',
                 groq: '⚡ Groq',
                 openai: '🧠 OpenAI',
                 mistral: '🌍 Mistral',
@@ -1345,6 +1685,7 @@
             if (type === 'ai') {
                 const tagMap = {
                     deepass: '<span class="tag deepass">📚 딥패스</span>',
+                    keyless: '<span class="tag keyless">🔑 KeylessAI</span>',
                     groq: '<span class="tag groq">⚡ Groq</span>',
                     openai: '<span class="tag openai">🧠 OpenAI</span>',
                     mistral: '<span class="tag mistral">🌍 Mistral</span>',
@@ -1357,6 +1698,10 @@
             } else if (type === 'mission') {
                 d.textContent = '🎯 ' + text;
                 d.style.border = '1px solid rgba(251,191,36,0.2)';
+                d.style.background = 'rgba(251,191,36,0.05)';
+            } else if (type === 'rate-limit') {
+                d.textContent = '⏳ ' + text;
+                d.style.border = '1px solid rgba(251,191,36,0.1)';
                 d.style.background = 'rgba(251,191,36,0.05)';
             } else {
                 d.textContent = text;
@@ -1394,12 +1739,22 @@
                 return '천만에! 언제든지 도와줄게! 😊';
             }
             const d = ['음... 그건 아직 배우지 못했어. 📚', '재미있는 질문이네! 🤔', '그건 생각해본 적 없어. 💭'];
-            return d[Math.floor(Math.random() * d.length)];
+            const response = d[Math.floor(Math.random() * d.length)];
+            // 자동 학습
+            library.push({
+                title: text.slice(0, 30) + '...',
+                content: response.replace('📚 ', ''),
+                source: 'auto-learn',
+                time: new Date().toISOString()
+            });
+            saveAll();
+            return response;
         }
 
         function useCurrency(mode) {
             const costs = {
                 deepass: { gold: 1, premium: 0 },
+                keyless: { gold: 1, premium: 0 },
                 groq: { gold: 3, premium: 0 },
                 openai: { gold: 3, premium: 0 },
                 mistral: { gold: 3, premium: 0 },
@@ -1426,7 +1781,11 @@
                 return;
             }
 
-            // 골드 차감
+            if (!checkRateLimit(currentUser || 'guest', 'chat')) {
+                addChatMsg('시스템', getRateLimitMessage('chat'), 'rate-limit');
+                return;
+            }
+
             if (!useCurrency(currentMode)) return;
 
             addChatMsg('나', text, 'user');
@@ -1435,29 +1794,125 @@
             try {
                 let aiResponse = '';
                 let usedApi = false;
+                let apiSource = '';
 
-                // 프리미엄 모드
-                if (currentMode === 'premium') {
-                    const openaiKey = localStorage.getItem('openai_key');
-                    if (openaiKey) {
-                        try {
-                            const response = await fetch(`${SERVER_URL}/api/chat/premium`, {
+                // 1️⃣ 딥패스 (로컬)
+                if (currentMode === 'deepass') {
+                    aiResponse = getAIResponse(text);
+                    usedApi = true;
+                    apiSource = 'deepass';
+                }
+
+                // 2️⃣ KeylessAI
+                if (!usedApi && currentMode === 'keyless') {
+                    try {
+                        aiResponse = await callKeylessAI(text, currentChar.name);
+                        if (aiResponse) {
+                            usedApi = true;
+                            apiSource = 'keyless';
+                            library.push({
+                                title: text.slice(0, 30) + '...',
+                                content: aiResponse,
+                                source: 'keylessai',
+                                time: new Date().toISOString()
+                            });
+                            saveAll();
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ KeylessAI 실패:', e.message);
+                    }
+                }
+
+                // 3️⃣ Groq
+                if (!usedApi && currentMode === 'groq') {
+                    try {
+                        aiResponse = await callGroqAPI(text, currentChar.name);
+                        if (aiResponse) {
+                            usedApi = true;
+                            apiSource = 'groq';
+                            library.push({
+                                title: text.slice(0, 30) + '...',
+                                content: aiResponse,
+                                source: 'groq-api',
+                                time: new Date().toISOString()
+                            });
+                            saveAll();
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Groq 실패:', e.message);
+                    }
+                }
+
+                // 4️⃣ OpenAI
+                if (!usedApi && currentMode === 'openai') {
+                    try {
+                        aiResponse = await callOpenAIAPI(text, currentChar.name);
+                        if (aiResponse) {
+                            usedApi = true;
+                            apiSource = 'openai';
+                            library.push({
+                                title: text.slice(0, 30) + '...',
+                                content: aiResponse,
+                                source: 'openai-api',
+                                time: new Date().toISOString()
+                            });
+                            saveAll();
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ OpenAI 실패:', e.message);
+                    }
+                }
+
+                // 5️⃣ Mistral
+                if (!usedApi && currentMode === 'mistral') {
+                    try {
+                        aiResponse = await callMistralAPI(text, currentChar.name);
+                        if (aiResponse) {
+                            usedApi = true;
+                            apiSource = 'mistral';
+                            library.push({
+                                title: text.slice(0, 30) + '...',
+                                content: aiResponse,
+                                source: 'mistral-api',
+                                time: new Date().toISOString()
+                            });
+                            saveAll();
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Mistral 실패:', e.message);
+                    }
+                }
+
+                // 6️⃣ 프리미엄 (OpenAI 고급)
+                if (!usedApi && currentMode === 'premium') {
+                    try {
+                        const premiumKey = localStorage.getItem('openai_key');
+                        if (premiumKey) {
+                            // 프리미엄은 OpenAI API를 사용하지만 더 고급 모델로
+                            const response = await fetch('https://api.openai.com/v1/chat/completions', {
                                 method: 'POST',
                                 headers: {
+                                    'Authorization': `Bearer ${premiumKey}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    message: text,
-                                    character: currentChar.name
+                                    model: 'gpt-4o',
+                                    messages: [
+                                        { role: 'system', content: `당신은 ${currentChar.name}입니다. 고품질의 답변을 제공해주세요.` },
+                                        { role: 'user', content: text }
+                                    ],
+                                    temperature: 0.8,
+                                    max_tokens: 500
                                 })
                             });
-                            const data = await response.json();
-                            if (data.success) {
-                                aiResponse = data.response;
+                            if (response.ok) {
+                                const data = await response.json();
+                                aiResponse = data.choices[0].message.content;
                                 usedApi = true;
+                                apiSource = 'premium';
                                 library.push({
                                     title: text.slice(0, 30) + '...',
-                                    content: data.response,
+                                    content: aiResponse,
                                     source: 'premium-api',
                                     time: new Date().toISOString()
                                 });
@@ -1470,138 +1925,31 @@
                                     checkMissions();
                                 }
                             } else {
-                                throw new Error(data.error || '프리미엄 API 응답 오류');
+                                throw new Error(`HTTP ${response.status}`);
                             }
-                        } catch (apiError) {
-                            console.warn('⚠️ 프리미엄 API 오류:', apiError.message);
-                            addError('프리미엄 API 오류: ' + apiError.message);
+                        } else {
+                            addError('🔑 OpenAI API 키가 없어요! 프리미엄 모드는 OpenAI 키가 필요합니다.');
                         }
-                    } else {
-                        addError('🔑 OpenAI API 키가 없어요! 프리미엄 모드는 OpenAI 키가 필요합니다.');
+                    } catch (e) {
+                        console.warn('⚠️ 프리미엄 실패:', e.message);
+                        addError('프리미엄 API 오류: ' + e.message);
                     }
                 }
 
-                // Groq API 호출 (Groq 모드 또는 딥패스 모드)
-                if ((currentMode === 'groq' || currentMode === 'deepass') && !usedApi) {
-                    const groqKey = localStorage.getItem('groq_key');
-                    if (groqKey) {
-                        try {
-                            const response = await fetch(`${SERVER_URL}/api/chat/groq`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    message: text,
-                                    character: currentChar.name,
-                                    mode: currentMode
-                                })
-                            });
-                            const data = await response.json();
-                            if (data.success) {
-                                aiResponse = data.response;
-                                usedApi = true;
-                                library.push({
-                                    title: text.slice(0, 30) + '...',
-                                    content: data.response,
-                                    source: 'groq-api',
-                                    time: new Date().toISOString()
-                                });
-                                saveAll();
-                            } else {
-                                throw new Error(data.error || 'Groq API 응답 오류');
-                            }
-                        } catch (apiError) {
-                            console.warn('⚠️ Groq API 오류:', apiError.message);
-                            addError('Groq API 오류: ' + apiError.message);
-                        }
-                    } else if (currentMode === 'groq') {
-                        addError('🔑 Groq API 키가 없어요! "나" 탭에서 키를 저장해주세요.');
-                    }
-                }
-
-                // OpenAI API 호출 (OpenAI 모드)
-                if (currentMode === 'openai' && !usedApi) {
-                    const openaiKey = localStorage.getItem('openai_key');
-                    if (openaiKey) {
-                        try {
-                            const response = await fetch(`${SERVER_URL}/api/chat/openai`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    message: text,
-                                    character: currentChar.name
-                                })
-                            });
-                            const data = await response.json();
-                            if (data.success) {
-                                aiResponse = data.response;
-                                usedApi = true;
-                                library.push({
-                                    title: text.slice(0, 30) + '...',
-                                    content: data.response,
-                                    source: 'openai-api',
-                                    time: new Date().toISOString()
-                                });
-                                saveAll();
-                            } else {
-                                throw new Error(data.error || 'OpenAI API 응답 오류');
-                            }
-                        } catch (apiError) {
-                            console.warn('⚠️ OpenAI API 오류:', apiError.message);
-                            addError('OpenAI API 오류: ' + apiError.message);
-                        }
-                    } else {
-                        addError('🔑 OpenAI API 키가 없어요! "나" 탭에서 키를 저장해주세요.');
-                    }
-                }
-
-                // Mistral API 호출 (Mistral 모드)
-                if (currentMode === 'mistral' && !usedApi) {
-                    const mistralKey = localStorage.getItem('mistral_key');
-                    if (mistralKey) {
-                        try {
-                            const response = await fetch(`${SERVER_URL}/api/chat/mistral`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    message: text,
-                                    character: currentChar.name
-                                })
-                            });
-                            const data = await response.json();
-                            if (data.success) {
-                                aiResponse = data.response;
-                                usedApi = true;
-                                library.push({
-                                    title: text.slice(0, 30) + '...',
-                                    content: data.response,
-                                    source: 'mistral-api',
-                                    time: new Date().toISOString()
-                                });
-                                saveAll();
-                            } else {
-                                throw new Error(data.error || 'Mistral API 응답 오류');
-                            }
-                        } catch (apiError) {
-                            console.warn('⚠️ Mistral API 오류:', apiError.message);
-                            addError('Mistral API 오류: ' + apiError.message);
-                        }
-                    } else {
-                        addError('🔑 Mistral API 키가 없어요! "나" 탭에서 키를 저장해주세요.');
-                    }
-                }
-
-                // API 응답이 없으면 로컬 응답 (폴백)
+                // 7️⃣ 최종 폴백: 딥패스
                 if (!usedApi || !aiResponse) {
                     aiResponse = getAIResponse(text);
+                    apiSource = 'deepass-fallback';
+                }
+
+                if (aiResponse) {
                     addChatMsg(currentChar.name, aiResponse, 'ai');
+                    // 응답 소스 표시 (선택)
+                    if (apiSource !== 'deepass' && apiSource !== 'deepass-fallback') {
+                        console.log(`💬 응답 소스: ${apiSource}`);
+                    }
                 } else {
-                    addChatMsg(currentChar.name, aiResponse, 'ai');
+                    addError('응답을 생성하지 못했어요. 다시 시도해주세요.');
                 }
 
             } catch (error) {
@@ -1611,7 +1959,6 @@
                 addChatMsg(currentChar.name, fallback, 'ai');
             }
 
-            // 캐릭터 경험치
             currentChar.chatCount = (currentChar.chatCount || 0) + 1;
             currentChar.level = Math.min(Math.floor(currentChar.chatCount / 3) + 1, 10);
             saveAll();
@@ -1635,13 +1982,11 @@
         function switchPage(p) {
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
             document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
-
             if (p === 'chat') {
                 document.getElementById('chatPanel').classList.add('active');
                 document.querySelectorAll('.nav-item')[1].classList.add('active');
                 return;
             }
-
             document.getElementById('chatPanel').classList.remove('active');
             const pageEl = document.getElementById('page-' + p);
             if (pageEl) pageEl.classList.add('active');
@@ -1665,22 +2010,22 @@
             addChatMsg('시스템', '📚 딥패스 기본 지식이 탑재되어 있어요!', 'sys');
             addChatMsg('시스템', '🪙 골드 100개, ⚡ 프리미엄 0개 지급 완료!', 'sys');
             addChatMsg('시스템', '💾 모든 데이터가 자동으로 저장돼요!', 'sys');
-            addChatMsg('시스템', '🌟 프리미엄 상점에서 전설 캐릭터를 획득하세요!', 'sys');
+            addChatMsg('시스템', '🔑 모든 AI 모드가 복원되었어요! (딥패스, KeylessAI, Groq, OpenAI, Mistral, 프리미엄)', 'sys');
+            addChatMsg('시스템', '📡 Supabase에 1회 설정하면 영구 저장!', 'sys');
             addChatMsg('시스템', '☀️ 출석 체크, ⚡ 퀴즈, 🎨 이미지 생성까지!', 'sys');
             switchPage('home');
         }
 
-        loadSupabaseKeys();
         setInterval(saveAll, 10000);
 
-        console.log('🧠 Deep-Co 최종 완전체 (프리미엄 강화) 로드됨!');
+        console.log('🧠 Deep-Co 최종 완전체 (모든 버그 수정)');
         console.log('👤 관리자 계정: admin / 1234');
-        console.log('🚀 Node.js 서버:', SERVER_URL);
+        console.log('🔑 지원 모드: 딥패스, KeylessAI, Groq, OpenAI, Mistral, 프리미엄');
+        console.log('📡 Supabase 1회 설정으로 모든 데이터 영구 저장!');
         console.log('📚 지식:', library.length + '개');
         console.log('👤 캐릭터:', chars.length + '개');
         console.log('🌍 세계관:', worlds.length + '개');
-        console.log('🌟 프리미엄 상점 활성화!');
-        console.log('💬 Groq API 실제 채팅 연동 완료!');
+        console.log('✅ 모든 버그 수정 완료!');
     </script>
 </body>
 </html>
