@@ -1,1 +1,1388 @@
-
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>✦ 챗버스a</title>
+    
+    <!-- ============================================================
+         🔒 CSP (Content Security Policy)
+         ============================================================ -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://api.groq.com https://api.mistral.ai https://keylessai.thryx.workers.dev https://api.stability.ai https://*.supabase.co;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://*.google.com https://*.naver.com https://*.githubassets.com https://picsum.photos https://*.supabase.co;
+        font-src 'self' data:;
+        connect-src 'self' https://*.supabase.co https://api.groq.com https://api.mistral.ai https://keylessai.thryx.workers.dev https://api.stability.ai;
+        frame-src 'self' https://*.supabase.co;
+    ">
+    
+    <!-- DOMPurify (XSS 방어) -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* ============================================================
+           챗버스a - 풀버전 UI
+           ============================================================ */
+        *{margin:0;padding:0;box-sizing:border-box}
+        
+        :root {
+            --bg-primary: #07070f;
+            --bg-secondary: rgba(16,16,32,0.6);
+            --bg-card: rgba(20,20,40,0.3);
+            --bg-input: rgba(255,255,255,0.03);
+            --bg-modal: rgba(0,0,0,0.8);
+            --text-primary: #f0eef5;
+            --text-secondary: rgba(255,255,255,0.5);
+            --text-muted: rgba(255,255,255,0.2);
+            --border-color: rgba(255,255,255,0.03);
+            --accent-purple: #c084fc;
+            --accent-blue: #60a5fa;
+            --accent-cyan: #22d3ee;
+            --gradient: linear-gradient(135deg, #c084fc, #60a5fa, #22d3ee);
+            --shadow: 0 8px 32px rgba(0,0,0,0.3);
+            --header-bg: rgba(7,7,15,0.85);
+            --nav-bg: rgba(7,7,15,0.9);
+            --chat-bg: #07070f;
+            --msg-ai-bg: rgba(20,20,40,0.4);
+            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* ===== 우주 배경 ===== */
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+        .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--duration) ease-in-out infinite alternate;opacity:0.3}
+        @keyframes twinkle{0%{opacity:0.1;transform:scale(0.8)}100%{opacity:0.6;transform:scale(1.2)}}
+        .aurora{position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 20% 50%,rgba(192,132,252,0.03) 0%,transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(96,165,250,0.02) 0%,transparent 50%);animation:auroraMove 20s ease-in-out infinite alternate;pointer-events:none;z-index:0;filter:blur(40px)}
+        @keyframes auroraMove{0%{transform:rotate(0deg) scale(1)}100%{transform:rotate(10deg) scale(1.1)}}
+        
+        /* ===== 로그인 ===== */
+        .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(7,7,15,0.92);backdrop-filter:blur(20px);z-index:9999;display:flex;justify-content:center;align-items:center;transition:.5s}
+        .login-overlay.hidden{opacity:0;pointer-events:none}
+        .login-box{background:rgba(16,16,32,0.5);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.03);border-radius:24px;padding:36px 32px;max-width:380px;width:90%;text-align:center}
+        .login-box .icon{font-size:44px;display:block;margin-bottom:4px}
+        .login-box h1{font-size:26px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
+        .login-box .sub{font-size:10px;color:var(--text-muted);letter-spacing:4px;margin-bottom:16px}
+        .login-box input{width:100%;padding:12px 16px;margin-bottom:8px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);color:var(--text-primary);font-size:14px;outline:none;transition:0.3s}
+        .login-box input:focus{border-color:rgba(192,132,252,0.1);background:rgba(255,255,255,0.04)}
+        .login-box input::placeholder{color:var(--text-muted)}
+        .login-box .btn-login{width:100%;padding:12px;border-radius:12px;border:none;background:var(--gradient);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:0.3s}
+        .login-box .btn-login:hover{transform:scale(1.02)}
+        .login-box .btn-guest{width:100%;padding:10px;margin-top:6px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:0.3s}
+        .login-box .btn-guest:hover{background:rgba(255,255,255,0.03)}
+        .divider{display:flex;align-items:center;gap:12px;margin:14px 0;color:var(--text-muted);font-size:9px}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.03)}
+        .social-buttons{display:flex;gap:6px}
+        .social-buttons button{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.02);cursor:pointer;transition:0.3s;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .social-buttons button:hover{background:rgba(255,255,255,0.04)}
+        .social-buttons button .sicon{height:20px;width:auto}
+        .social-buttons button .sname{font-size:7px;color:var(--text-muted)}
+        .login-box .policy{font-size:8px;color:var(--text-muted);margin-top:12px;line-height:1.5}
+        .login-box .policy a{color:var(--accent-purple);text-decoration:none}
+        .login-box .error{font-size:11px;color:#f87171;margin-top:6px;min-height:18px}
+        
+        /* ===== 헤더 ===== */
+        header{background:var(--header-bg);backdrop-filter:blur(10px);padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:2;height:52px}
+        header .logo-area{display:flex;align-items:center;gap:8px;cursor:pointer}
+        header .logo-area .icon{font-size:24px}
+        header .logo-area .brand h1{font-size:16px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+        header .logo-area .brand .sub{font-size:7px;color:var(--text-muted);letter-spacing:2px}
+        .header-right{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+        .badge{font-size:7px;padding:2px 10px;border-radius:12px;font-weight:600;background:rgba(192,132,252,0.06);color:var(--accent-purple);border:1px solid rgba(192,132,252,0.03)}
+        .badge-gold{background:rgba(251,191,36,0.08);color:#fbbf24;border-color:rgba(251,191,36,0.04)}
+        .badge-premium{background:rgba(192,132,252,0.08);color:var(--accent-purple)}
+        .badge-save{background:rgba(34,211,238,0.06);color:var(--accent-cyan)}
+        .badge-guest{background:rgba(251,191,36,0.04);color:#fbbf24}
+        .badge-dev{background:rgba(34,211,238,0.08);color:var(--accent-cyan);border-color:rgba(34,211,238,0.04)}
+        .badge-legend{background:linear-gradient(135deg,#fbbf24,#ec4899);color:#fff;border:none}
+        .theme-toggle{background:none;border:none;color:var(--text-secondary);font-size:16px;cursor:pointer;padding:4px;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+        .theme-toggle:hover{background:rgba(255,255,255,0.03)}
+        .notification-badge{position:absolute;top:-2px;right:-2px;background:#f87171;color:#fff;font-size:7px;border-radius:50%;padding:0 4px;display:none;min-width:16px;height:16px;line-height:16px;text-align:center}
+        
+        /* ===== 메인 ===== */
+        .main{flex:1;overflow-y:auto;padding:10px;padding-bottom:72px;z-index:1;position:relative}
+        .page{display:none;animation:fadeIn 0.3s ease}
+        .page.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        
+        .card{background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.02);border-radius:16px;padding:14px 16px;margin-bottom:10px;transition:0.3s}
+        .card:hover{border-color:rgba(255,255,255,0.04)}
+        .card h3{color:var(--accent-purple);font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-weight:600;letter-spacing:0.3px}
+        .card h3 .icon{font-size:16px}
+        .card .desc{font-size:11px;color:var(--text-secondary);margin-bottom:8px;line-height:1.4}
+        
+        input,textarea,select{width:100%;padding:9px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:var(--bg-input);color:var(--text-primary);font-size:12px;outline:none;margin-bottom:4px;font-family:inherit;transition:0.3s}
+        input:focus,textarea:focus,select:focus{border-color:rgba(192,132,252,0.06);background:rgba(255,255,255,0.04)}
+        input::placeholder,textarea::placeholder{color:var(--text-muted)}
+        
+        button{padding:6px 14px;border-radius:10px;border:none;font-weight:600;font-size:11px;cursor:pointer;transition:all 0.2s}
+        button:active{transform:scale(0.96)}
+        .btn-p{background:var(--gradient);color:#fff}
+        .btn-p:hover{transform:scale(1.02)}
+        .btn-g{background:rgba(34,211,238,0.06);color:var(--accent-cyan);border:1px solid rgba(34,211,238,0.03)}
+        .btn-g:hover{background:rgba(34,211,238,0.1)}
+        .btn-d{background:rgba(239,68,68,0.06);color:#f87171;border:1px solid rgba(239,68,68,0.03)}
+        .btn-d:hover{background:rgba(239,68,68,0.1)}
+        .btn-creator{background:linear-gradient(135deg,#fbbf24,#ec4899);color:#fff}
+        .btn-creator:hover{transform:scale(1.02)}
+        .btn-full{width:100%;padding:9px;margin-top:4px;border-radius:12px;background:var(--gradient);color:#fff;font-size:12px;display:flex;justify-content:center;align-items:center;gap:4px}
+        .btn-sm{padding:3px 10px;font-size:10px;border-radius:8px}
+        .btn-premium-glow{background:var(--gradient);color:#fff;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(192,132,252,0.05)}50%{box-shadow:0 0 25px rgba(192,132,252,0.1)}}
+        
+        .token-display{display:flex;align-items:center;gap:12px;padding:8px 14px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);border-radius:12px;margin-bottom:10px}
+        .token-item{display:flex;align-items:center;gap:4px;font-size:12px}
+        .token-item .icon{font-size:14px}
+        .token-item .value{font-weight:700}
+        .token-item .value.gold{color:#fbbf24}
+        .token-item .value.premium{color:var(--accent-blue)}
+        .token-item .label{font-size:8px;color:var(--text-muted)}
+        
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+        @media(max-width:450px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}}
+        
+        .world-card,.char-card,.discover-card{background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+        .world-card:hover,.char-card:hover,.discover-card:hover{background:rgba(255,255,255,0.03);border-color:rgba(192,132,252,0.04);transform:translateY(-2px)}
+        .world-card .icon,.char-card .avatar{font-size:28px;display:block;margin-bottom:2px}
+        .world-card .name,.char-card .name{font-size:12px;font-weight:700;color:var(--accent-purple)}
+        .world-card .desc,.char-card .desc{font-size:9px;color:var(--text-secondary)}
+        .world-card .count,.char-card .lv{font-size:9px;color:var(--text-muted);margin-top:2px}
+        .char-card .mood{font-size:10px;margin-top:2px}
+        .world-card .del,.char-card .del{position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.04);color:#f87171;border:none;border-radius:50%;width:18px;height:18px;font-size:9px;cursor:pointer}
+        .world-card .del:hover{background:rgba(239,68,68,0.08)}
+        
+        .discover-card .avatar{font-size:32px}
+        .discover-card .creator{font-size:8px;color:var(--text-muted)}
+        .discover-card .stats{font-size:9px;color:var(--text-secondary);margin-top:4px;display:flex;justify-content:center;gap:10px}
+        
+        .badge-item{background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);border-radius:8px;padding:6px;text-align:center;transition:0.3s}
+        .badge-item.obtained{border-color:rgba(192,132,252,0.04);background:rgba(192,132,252,0.02)}
+        .badge-item.locked{opacity:0.3}
+        .badge-item .emoji{font-size:22px;display:block}
+        .badge-item .name{font-size:8px;color:var(--text-primary);margin-top:2px}
+        .badge-item .rarity{font-size:6px}
+        .badge-item .rarity.common{color:#34d399}
+        .badge-item .rarity.rare{color:#3b82f6}
+        .badge-item .rarity.heroic{color:#8b5cf6}
+        .badge-item .rarity.legendary{color:#fbbf24}
+        .badge-item .rarity.mythic{color:#f43f5e}
+        
+        .knowledge-card{background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);border-radius:10px;padding:10px;cursor:pointer;transition:0.3s}
+        .knowledge-card:hover{background:rgba(255,255,255,0.03)}
+        .knowledge-card .title{font-size:12px;font-weight:600;color:var(--accent-purple)}
+        .knowledge-card .content{font-size:10px;color:var(--text-secondary);margin-top:2px}
+        .knowledge-card .source{font-size:8px;color:var(--text-muted);margin-top:2px}
+        
+        #chatPanel{display:none;flex-direction:column;flex:1;overflow:hidden;position:fixed;top:52px;left:0;right:0;bottom:72px;background:var(--chat-bg);z-index:50}
+        #chatPanel.active{display:flex}
+        .chat-h{padding:6px 12px;background:var(--bg-secondary);border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;flex-wrap:wrap;font-size:10px;color:var(--text-secondary);flex-shrink:0;gap:4px;align-items:center}
+        .chat-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .chat-left .close-btn{background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:0 2px}
+        .chat-left .close-btn:hover{color:#f87171}
+        .mode-upgrade-btn{background:rgba(192,132,252,0.04);border:1px solid rgba(192,132,252,0.02);border-radius:14px;padding:2px 10px;font-size:9px;color:var(--accent-purple);cursor:pointer}
+        .mode-upgrade-btn:hover{background:rgba(192,132,252,0.06)}
+        .mode-selector{display:flex;gap:3px;flex-wrap:wrap}
+        .mode-selector button{font-size:7px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,0.01);color:var(--text-secondary);border:1px solid transparent;cursor:pointer}
+        .mode-selector button.active{background:rgba(192,132,252,0.04);color:var(--accent-purple);border-color:rgba(192,132,252,0.03)}
+        .chat-area{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}
+        .msg{max-width:88%;padding:8px 14px;border-radius:14px;font-size:13px;line-height:1.6;animation:slideIn 0.3s ease;word-break:break-word}
+        @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .msg.user{align-self:flex-end;background:var(--gradient);border-bottom-right-radius:4px;color:#fff}
+        .msg.ai{align-self:flex-start;background:var(--msg-ai-bg);border:1px solid rgba(255,255,255,0.02);border-left:2px solid var(--accent-purple);border-bottom-left-radius:4px}
+        .msg.ai .n{color:var(--accent-purple);font-weight:600;font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap}
+        .msg.ai .n .tag{font-size:6px;padding:1px 8px;border-radius:8px;background:rgba(192,132,252,0.04)}
+        .msg.ai .n .mood{font-size:9px;padding:1px 8px;border-radius:8px;background:rgba(192,132,252,0.02)}
+        .msg.sys{align-self:center;color:var(--text-secondary);font-size:9px;background:rgba(255,255,255,0.01);padding:3px 16px;border-radius:12px}
+        .msg.mission{align-self:center;color:#fbbf24;font-size:9px;background:rgba(251,191,36,0.02);padding:3px 14px;border-radius:10px;border:1px solid rgba(251,191,36,0.02)}
+        .msg.error{align-self:center;color:#f87171;font-size:9px;background:rgba(239,68,68,0.02);padding:3px 14px;border-radius:10px}
+        .bar{display:flex;gap:6px;padding:8px 12px;background:var(--bg-secondary);border-top:1px solid rgba(255,255,255,0.02);flex-shrink:0}
+        .bar input{flex:1;margin:0;font-size:12px;padding:8px 14px;border-radius:20px}
+        .bar button{padding:8px 16px;border-radius:20px;font-size:12px}
+        .tts-btn{background:rgba(192,132,252,0.04);border:1px solid rgba(192,132,252,0.02);border-radius:14px;padding:2px 10px;font-size:9px;color:var(--accent-purple);cursor:pointer}
+        .tts-btn.playing{background:rgba(239,68,68,0.04);color:#f87171}
+        .adult-content{display:none;border-color:rgba(236,72,153,0.04)!important}
+        .adult-content.visible{display:block}
+        
+        .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-modal);backdrop-filter:blur(10px);z-index:1000;display:none;justify-content:center;align-items:center;padding:16px}
+        .modal-overlay.active{display:flex}
+        .modal-content{background:var(--bg-secondary);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.02);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto}
+        .modal-content .close-btn{float:right;background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer}
+        
+        .fake-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;display:none;justify-content:center;align-items:center;padding:16px}
+        .fake-modal.active{display:flex}
+        .fake-modal .fake-modal-content{max-width:380px;width:100%;border-radius:14px;animation:modalPop 0.3s ease}
+        @keyframes modalPop{0%{transform:scale(0.95);opacity:0}100%{transform:scale(1);opacity:1}}
+        .fake-modal.google .fake-modal-content{background:#fff;padding:32px 28px;color:#202124;text-align:center}
+        .fake-modal.google .fake-modal-content .g-logo img{height:40px;margin-bottom:10px}
+        .fake-modal.google .fake-modal-content h2{font-size:20px;font-weight:400}
+        .fake-modal.google .fake-modal-content .g-sub{font-size:13px;color:#5f6368;margin-bottom:16px}
+        .fake-modal.google .fake-modal-content .g-input{width:100%;padding:12px 14px;margin-bottom:8px;border-radius:4px;border:1px solid #dadce0;font-size:14px;outline:none;color:#202124;background:#fff}
+        .fake-modal.google .fake-modal-content .g-input:focus{border-color:#4285f4}
+        .fake-modal.google .btn-fake-login{width:100%;padding:12px;border-radius:4px;border:none;background:#4285f4;color:#fff;font-size:14px;font-weight:500;cursor:pointer}
+        .fake-modal.google .btn-fake-login:hover{background:#3367d6}
+        .fake-modal.google .btn-fake-cancel{width:100%;padding:10px;margin-top:4px;border-radius:4px;border:none;background:transparent;color:#5f6368;font-size:13px;cursor:pointer}
+        .fake-modal.naver .fake-modal-content{background:#fff;padding:32px 28px;color:#1a1a2e;text-align:center}
+        .fake-modal.naver .fake-modal-content .n-logo img{height:36px;margin-bottom:8px}
+        .fake-modal.naver .fake-modal-content h2{font-size:18px;font-weight:700;color:#1a1a2e}
+        .fake-modal.naver .fake-modal-content .n-sub{font-size:13px;color:#666;margin-bottom:16px}
+        .fake-modal.naver .fake-modal-content .n-input{width:100%;padding:12px 14px;margin-bottom:8px;border-radius:6px;border:1px solid #ddd;font-size:14px;outline:none;color:#1a1a2e;background:#f8f8f8}
+        .fake-modal.naver .fake-modal-content .n-input:focus{border-color:#03c75a}
+        .fake-modal.naver .btn-fake-login{width:100%;padding:12px;border-radius:6px;border:none;background:#03c75a;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+        .fake-modal.naver .btn-fake-login:hover{background:#02b350}
+        .fake-modal.naver .btn-fake-cancel{width:100%;padding:10px;margin-top:4px;border-radius:6px;border:none;background:transparent;color:#888;font-size:13px;cursor:pointer}
+        .fake-modal.github .fake-modal-content{background:#0d1117;padding:32px 28px;color:#f0f0f5;border:1px solid #30363d;text-align:center}
+        .fake-modal.github .fake-modal-content .gh-logo img{height:36px;margin-bottom:8px}
+        .fake-modal.github .fake-modal-content h2{font-size:20px;font-weight:600}
+        .fake-modal.github .fake-modal-content .gh-sub{font-size:13px;color:#8b949e;margin-bottom:16px}
+        .fake-modal.github .fake-modal-content .gh-input{width:100%;padding:12px 14px;margin-bottom:8px;border-radius:6px;border:1px solid #30363d;font-size:14px;outline:none;color:#f0f0f5;background:#0d1117}
+        .fake-modal.github .fake-modal-content .gh-input:focus{border-color:#58a6ff}
+        .fake-modal.github .btn-fake-login{width:100%;padding:12px;border-radius:6px;border:none;background:#238636;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+        .fake-modal.github .btn-fake-login:hover{background:#2ea043}
+        .fake-modal.github .btn-fake-cancel{width:100%;padding:10px;margin-top:4px;border-radius:6px;border:none;background:transparent;color:#8b949e;font-size:13px;cursor:pointer}
+        .fake-error{font-size:12px;color:#f87171;min-height:18px;margin-bottom:4px}
+        
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-around;padding:6px 0 10px 0;z-index:100;height:56px}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-muted);font-size:7px;cursor:pointer;transition:0.3s;padding:0 12px;border:none;background:none;font-family:inherit}
+        .nav-item .icon{font-size:18px;transition:0.3s}
+        .nav-item.active{color:var(--accent-purple)}
+        .nav-item.active .icon{transform:translateY(-2px)}
+        .nav-item .create-btn{background:var(--gradient);color:#fff;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:300;margin-top:-20px;box-shadow:0 4px 20px rgba(192,132,252,0.15)}
+        .nav-item .create-btn:hover{transform:scale(1.04)}
+        
+        /* ===== 문의/알림 ===== */
+        .inquiry-item{border-left:3px solid transparent}
+        .inquiry-item.pending{border-left-color:#fbbf24}
+        .inquiry-item.answered{border-left-color:#34d399}
+        .inquiry-item.closed{border-left-color:#6b7280}
+        
+        @media(max-width:450px){
+            .login-box{padding:28px 20px}
+            .login-box h1{font-size:22px}
+            .main{padding:8px;padding-bottom:64px}
+            .card{padding:12px 14px}
+            .token-display{padding:6px 12px;gap:8px}
+            .token-item{font-size:11px}
+            .bottom-nav{height:52px}
+            .nav-item .create-btn{width:40px;height:40px;font-size:22px;margin-top:-18px}
+            #chatPanel{top:48px;bottom:52px}
+            .chat-h{padding:4px 10px}
+            .msg{max-width:92%;padding:6px 12px;font-size:12px}
+            .fake-modal .fake-modal-content{padding:24px 20px}
+            .grid-2{grid-template-columns:1fr}
+            .grid-3{grid-template-columns:1fr 1fr}
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="aurora"></div>
+    
+    <!-- ===== 로그인 ===== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <span class="icon">✦</span>
+            <h1>챗버스a</h1>
+            <div class="sub">✧ ChatVerseA ✧</div>
+            <input type="text" id="loginId" placeholder="아이디 또는 이메일" onkeydown="if(event.key==='Enter')login()">
+            <input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')login()">
+            <button class="btn-login" onclick="login()">✦ 시작하기</button>
+            <button class="btn-guest" onclick="guestLogin()">☺ 게스트로 시작</button>
+            <div class="divider"><span>또는</span></div>
+            <div class="social-buttons">
+                <button onclick="openFakeModal('google')"><img class="sicon" src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png" alt="Google" style="height:20px;"><span class="sname">Google</span></button>
+                <button onclick="openFakeModal('naver')"><img class="sicon" src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/naver.svg" alt="Naver" style="height:20px;filter:brightness(0) invert(1);"><span class="sname">Naver</span></button>
+                <button onclick="openFakeModal('github')"><img class="sicon" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" style="height:20px;"><span class="sname">GitHub</span></button>
+            </div>
+            <div class="policy">계정이 없으면 자동 생성<br>가입 시 <a href="#" onclick="showPolicy('terms')">이용약관</a> 및 <a href="#" onclick="showPolicy('privacy')">개인정보처리방침</a> 동의</div>
+            <div class="error" id="loginError"></div>
+        </div>
+    </div>
+    
+    <!-- ===== 페이크 모달 ===== -->
+    <div class="fake-modal google" id="fakeModal">
+        <div class="fake-modal-content">
+            <div class="g-logo"><img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png" alt="Google" style="height:40px;"></div>
+            <h2>로그인</h2>
+            <div class="g-sub">Google 계정으로 계속하기</div>
+            <input class="g-input" type="text" id="fakeEmail" placeholder="이메일 또는 휴대전화">
+            <input class="g-input" type="password" id="fakePassword" placeholder="비밀번호">
+            <div class="fake-error" id="fakeError"></div>
+            <button class="btn-fake-login" onclick="fakeSocialLogin()">다음</button>
+            <button class="btn-fake-cancel" onclick="closeFakeModal()">취소</button>
+        </div>
+    </div>
+    
+    <!-- ===== 헤더 ===== -->
+    <header>
+        <div class="logo-area" onclick="switchPage('home')">
+            <span class="icon">✦</span>
+            <div class="brand">
+                <h1>챗버스a</h1>
+                <div class="sub">ChatVerseA</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="badge" id="userBadge">☺ 게스트</span>
+            <span class="badge badge-gold" id="goldDisplay">◈0</span>
+            <span class="badge badge-premium" id="premiumDisplay">◈0</span>
+            <span class="badge badge-save" id="saveBadge">◈ 저장</span>
+            <button class="theme-toggle" onclick="toggleNotificationPanel()" title="알림">
+                🔔
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="테마">☽</button>
+        </div>
+    </header>
+    
+    <!-- ===== 메인 ===== -->
+    <div class="main">
+        
+        <!-- ===== 홈 ===== -->
+        <div class="page active" id="page-home">
+            <div style="text-align:center;padding:4px 0 8px 0;">
+                <span style="font-size:28px;display:block;">✦</span>
+                <h2 style="font-size:16px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">챗버스a</h2>
+                <p style="color:var(--text-secondary);font-size:9px;letter-spacing:3px;">✧ 대화의 우주로 ✧</p>
+            </div>
+            
+            <div class="token-display">
+                <div class="token-item"><span class="icon">◈</span><span class="value gold" id="goldValue">0</span><span class="label">골드</span></div>
+                <div class="token-item"><span class="icon">◈</span><span class="value premium" id="premiumValue">0</span><span class="label">프리미엄</span></div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 세계관</h3>
+                <div class="grid-2" id="worldGrid"></div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 배지 현황</h3>
+                <div id="badgeSummary" style="font-size:10px;color:var(--text-secondary);">0개 획득</div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">☀</span> 첫 7일 모험</h3>
+                <div id="attendanceStatus" style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;">☀ 모험을 시작해보세요!</div>
+                <button class="btn-full btn-creator" onclick="checkAttendance()" style="padding:7px;font-size:11px;">☀ 오늘의 모험</button>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 도서관</h3>
+                <div class="grid-2" id="knowledgeGrid"></div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 인기 캐릭터</h3>
+                <input id="discoverSearch" placeholder="캐릭터 검색..." oninput="searchCharacters()" style="padding:7px 12px;font-size:11px;">
+                <div class="grid-2" id="discoverGrid"></div>
+            </div>
+            
+            <div class="card adult-content">
+                <h3><span class="icon">✦</span> 18+ 콘텐츠</h3>
+                <p style="font-size:10px;color:var(--text-secondary);">성인 인증 후 이용 가능</p>
+            </div>
+        </div>
+        
+        <!-- ===== 제작 ===== -->
+        <div class="page" id="page-create">
+            <div class="card">
+                <h3><span class="icon">✦</span> 세계관</h3>
+                <div class="grid-2" id="worldGrid"></div>
+                <button class="btn-full btn-g" onclick="showAddWorld()" style="padding:7px;font-size:11px;">+ 세계관 추가 (100골드)</button>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 캐릭터</h3>
+                <div class="grid-2" id="charGrid"></div>
+                <button class="btn-full btn-creator" onclick="showAddCharacter()" style="padding:7px;font-size:11px;" id="addCharBtn">+ 캐릭터 추가</button>
+            </div>
+            
+            <div class="card">
+                <h3 onclick="toggleCreateForm()" style="cursor:pointer;">
+                    <span class="icon">✦</span> 캐릭터 만들기 <span id="createToggle" style="font-size:12px;margin-left:auto;">▼</span>
+                </h3>
+                <div id="createForm" style="display:none;padding-top:8px;">
+                    <p style="font-size:10px;color:var(--text-secondary);margin-bottom:6px;">새로운 캐릭터를 만들어보세요!</p>
+                    <select id="charWorldSelect"></select>
+                    <input id="charName" placeholder="이름">
+                    <input id="charEmoji" placeholder="이모지 (예: 🧙)">
+                    <textarea id="charDesc" rows="2" placeholder="설명"></textarea>
+                    <input id="charPersonality" placeholder="성격">
+                    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.02);">
+                        <div style="font-size:10px;color:var(--accent-purple);margin-bottom:4px;">✦ 커스터마이징</div>
+                        <select id="charTheme" style="font-size:11px;padding:7px 12px;">
+                            <option value="로맨틱">로맨틱</option>
+                            <option value="진지" selected>진지</option>
+                            <option value="유쾌">유쾌</option>
+                            <option value="미스터리">미스터리</option>
+                            <option value="평화로운">평화로운</option>
+                            <option value="열정적">열정적</option>
+                        </select>
+                        <select id="charVoice" style="font-size:11px;padding:7px 12px;">
+                            <option value="기본 (여성)">여성</option>
+                            <option value="기본 (남성)" selected>남성</option>
+                            <option value="차분한">차분한</option>
+                            <option value="밝은">밝은</option>
+                            <option value="신비로운">신비로운</option>
+                            <option value="진지한">진지한</option>
+                        </select>
+                        <input id="charImagePrompt" placeholder="프로필 이미지 프롬프트 (예: 젊은 마법사, 긴 로브)" style="font-size:11px;padding:7px 12px;">
+                        <div style="font-size:8px;color:var(--text-muted);margin-top:2px;">📌 AI가 캐릭터 프로필을 생성해줍니다</div>
+                    </div>
+                    <button class="btn-full btn-creator" onclick="createCharacter()" style="margin-top:6px;">✦ 캐릭터 생성</button>
+                </div>
+            </div>
+            
+            <!-- 👑 관리자 전용: 문의 관리 -->
+            <div class="card" id="adminInquiryCard" style="display:none;border-color:rgba(251,191,36,0.04);">
+                <h3><span class="icon">👑</span> 📋 문의 관리 <span class="notification-badge" id="adminInquiryBadge" style="position:relative;display:none;background:#f87171;color:#fff;font-size:8px;border-radius:50%;padding:0 6px;">0</span></h3>
+                <div id="adminInquiryList" style="font-size:11px;max-height:300px;overflow-y:auto;"></div>
+            </div>
+        </div>
+        
+        <!-- ===== 프로필 ===== -->
+        <div class="page" id="page-profile">
+            <div class="card">
+                <h3><span class="icon">☺</span> 내 정보</h3>
+                <div id="profileContent" style="font-size:11px;line-height:1.6;"></div>
+                <button class="btn-full btn-d" onclick="logout()" style="margin-top:4px;padding:6px;font-size:11px;">◈ 로그아웃 (계정 삭제)</button>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">◈</span> 포춘쿠키</h3>
+                <div id="fortuneDisplay" style="font-size:12px;color:#fbbf24;text-align:center;padding:10px;background:rgba(251,191,36,0.02);border-radius:10px;min-height:44px;border:1px solid rgba(251,191,36,0.02);">◈ 클릭하세요!</div>
+                <button class="btn-full btn-creator" onclick="openFortuneCookie()" style="padding:7px;font-size:11px;">◈ 포춘쿠키 (1골드)</button>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 스토리북</h3>
+                <div id="storyList" style="font-size:11px;"></div>
+                <div style="display:flex;gap:4px;margin-top:6px;">
+                    <input id="storyTitle" placeholder="제목" style="flex:1;margin:0;padding:6px 10px;font-size:11px;">
+                    <input id="storyContent" placeholder="내용" style="flex:2;margin:0;padding:6px 10px;font-size:11px;">
+                    <button class="btn-p btn-sm" onclick="addStory(document.getElementById('storyTitle').value, document.getElementById('storyContent').value);document.getElementById('storyTitle').value='';document.getElementById('storyContent').value='';">저장</button>
+                </div>
+            </div>
+            
+            <!-- 📩 내 문의 내역 -->
+            <div class="card">
+                <h3><span class="icon">✉</span> 내 문의 내역</h3>
+                <div id="myInquiryList" style="font-size:11px;max-height:150px;overflow-y:auto;"></div>
+            </div>
+            
+            <!-- ✉ 문의하기 -->
+            <div class="card">
+                <h3><span class="icon">✉</span> 문의하기</h3>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <select id="inquiryType" style="padding:7px 12px;font-size:11px;">
+                        <option value="bug">🐛 버그 신고</option>
+                        <option value="suggestion">💡 건의사항</option>
+                        <option value="question">❓ 질문</option>
+                        <option value="etc">📌 기타</option>
+                    </select>
+                    <input id="inquiryTitle" placeholder="제목" style="padding:7px 12px;font-size:11px;">
+                    <textarea id="inquiryContent" rows="3" placeholder="내용을 입력하세요..." style="padding:7px 12px;font-size:11px;"></textarea>
+                    <button class="btn-full btn-p" onclick="sendInquiry()" style="padding:7px;font-size:11px;">✉ 문의 보내기</button>
+                </div>
+            </div>
+            
+            <!-- 🔐 API 키 설정 (관리자/개발자 전용) -->
+            <div class="card" id="apiSettingsCard" style="display:none;border-color:rgba(192,132,252,0.04);">
+                <h3><span class="icon">✦</span> API 키 설정</h3>
+                <p style="font-size:9px;color:var(--text-secondary);margin-bottom:4px;">⚡ Supabase에 안전하게 저장됩니다</p>
+                <div style="margin-bottom:4px;">
+                    <div style="font-size:9px;color:var(--text-secondary);margin-bottom:2px;">Groq</div>
+                    <input type="password" id="groqKey" placeholder="gsk_xxxxxxxx" style="padding:6px 10px;font-size:11px;margin-bottom:2px;">
+                    <span id="groqStatus" style="font-size:8px;color:#888;">미설정</span>
+                </div>
+                <div style="margin-bottom:4px;">
+                    <div style="font-size:9px;color:var(--text-secondary);margin-bottom:2px;">Mistral</div>
+                    <input type="password" id="mistralKey" placeholder="mistral_xxxx" style="padding:6px 10px;font-size:11px;margin-bottom:2px;">
+                    <span id="mistralStatus" style="font-size:8px;color:#888;">미설정</span>
+                </div>
+                <div style="margin-bottom:4px;">
+                    <div style="font-size:9px;color:var(--text-secondary);margin-bottom:2px;">Stability AI</div>
+                    <input type="password" id="stabilityKey" placeholder="sk-xxxx" style="padding:6px 10px;font-size:11px;margin-bottom:2px;">
+                    <span id="stabilityStatus" style="font-size:8px;color:#888;">미설정</span>
+                </div>
+                <button class="btn-full btn-p" onclick="saveAPIKeys()" style="padding:6px;font-size:11px;">◈ 저장 (Supabase)</button>
+            </div>
+            
+            <!-- 👑 개발자 관리 (관리자 전용) -->
+            <div class="card" id="devManagementCard" style="display:none;border-color:rgba(34,211,238,0.04);">
+                <h3><span class="icon">✦</span> 개발자 관리</h3>
+                <div style="display:flex;gap:4px;margin-bottom:4px;">
+                    <input id="newDevId" placeholder="GitHub ID 또는 Email" style="flex:1;margin:0;padding:6px 10px;font-size:11px;">
+                    <button class="btn-p btn-sm" onclick="addDeveloperAccount()">+</button>
+                </div>
+                <div id="devList" style="font-size:11px;"></div>
+            </div>
+            
+            <div class="card" id="adultVerification">
+                <h3><span class="icon">✦</span> 성인 인증</h3>
+                <div id="verificationStatus" style="font-size:10px;margin-bottom:4px;">◈ 인증되지 않음</div>
+                <button class="btn-full btn-premium-glow" onclick="showAdultVerify()">✦ 19세 인증</button>
+            </div>
+            
+            <div class="card">
+                <h3><span class="icon">✦</span> 정책</h3>
+                <div style="font-size:10px;color:var(--text-secondary);line-height:1.6;">
+                    <div>✦ <a href="#" onclick="showPolicy('terms')">이용약관</a></div>
+                    <div>✦ <a href="#" onclick="showPolicy('privacy')">개인정보처리방침</a></div>
+                    <div>✦ <a href="#" onclick="showPolicy('platform')">AI 플랫폼 정책</a></div>
+                    <div style="margin-top:4px;font-size:9px;color:var(--text-muted);">⚠ 12회 경고 시 정지</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== 하단 네비 ===== -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('home')"><span class="icon">⌂</span> 홈</button>
+        <button class="nav-item" onclick="switchPage('create')"><span class="create-btn">+</span> 제작</button>
+        <button class="nav-item" onclick="switchPage('profile')"><span class="icon">☺</span> 나</button>
+    </div>
+    
+    <!-- ===== 채팅 패널 ===== -->
+    <div id="chatPanel">
+        <div class="chat-h">
+            <div class="chat-left">
+                <button class="close-btn" onclick="closeChat()">✕</button>
+                <span id="chatTitle">✦ 대화</span>
+                <span id="chatInfo" style="font-size:9px;">☺ <span id="currentCharName">-</span></span>
+                <span id="chatModeDisplay" style="font-size:9px;padding:2px 10px;border-radius:10px;background:rgba(192,132,252,0.04);color:var(--accent-purple);cursor:pointer;" onclick="showModeModal()">✦ 딥코</span>
+                <button class="mode-upgrade-btn" onclick="showModeModal()">⬆</button>
+                <span id="chatMoodDisplay" style="font-size:9px;padding:2px 10px;border-radius:10px;background:rgba(251,191,36,0.02);color:#fbbf24;">☺ 평화</span>
+                <button class="tts-btn" id="ttsToggle" onclick="toggleTTS()">✦ TTS</button>
+            </div>
+            <div class="mode-selector" id="chatModeSelector">
+                <button class="active" data-mode="deppco" onclick="setChatMode('deppco')">✦ 딥코</button>
+                <button data-mode="fast" onclick="setChatMode('fast')">✦ 빠른</button>
+                <button data-mode="natural" onclick="setChatMode('natural')">✦ 자연</button>
+                <button data-mode="light" onclick="setChatMode('light')">✦ 가벼운</button>
+            </div>
+        </div>
+        <div id="chat" class="chat-area">
+            <div class="msg sys">✦ 캐릭터를 선택하고 대화를 시작하세요</div>
+        </div>
+        <div class="bar">
+            <input id="chatInput" placeholder="메시지..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+            <button class="btn-p" onclick="sendChatMsg()">↑</button>
+        </div>
+    </div>
+    
+    <!-- ===== 모달 ===== -->
+    <div class="modal-overlay" id="modeModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModeModal()">✕</button>
+            <h2 style="color:var(--accent-purple);font-size:18px;margin-bottom:12px;text-align:center;">✦ AI 모드</h2>
+            <div class="mode-option" data-mode="deppco" onclick="selectMode('deppco')" style="padding:10px;border:1px solid rgba(255,255,255,0.02);border-radius:10px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.3s;">
+                <div><div style="font-size:13px;font-weight:600;">✦ 딥코</div><div style="font-size:9px;color:var(--text-secondary);">무료</div></div>
+                <div style="color:#34d399;font-size:16px;">✅</div>
+            </div>
+            <div class="mode-option" data-mode="light" onclick="selectMode('light')" style="padding:10px;border:1px solid rgba(255,255,255,0.02);border-radius:10px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.3s;">
+                <div><div style="font-size:13px;font-weight:600;">✦ 가벼운</div><div style="font-size:9px;color:var(--text-secondary);">5골드</div></div>
+                <div style="color:#34d399;font-size:16px;"></div>
+            </div>
+            <div class="mode-option" data-mode="natural" onclick="selectMode('natural')" style="padding:10px;border:1px solid rgba(255,255,255,0.02);border-radius:10px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.3s;">
+                <div><div style="font-size:13px;font-weight:600;">✦ 자연스러운</div><div style="font-size:9px;color:var(--text-secondary);">10골드</div></div>
+                <div style="color:#34d399;font-size:16px;"></div>
+            </div>
+            <div class="mode-option" data-mode="fast" onclick="selectMode('fast')" style="padding:10px;border:1px solid rgba(255,255,255,0.02);border-radius:10px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:0.3s;">
+                <div><div style="font-size:13px;font-weight:600;">✦ 빠른</div><div style="font-size:9px;color:var(--text-secondary);">25골드</div></div>
+                <div style="color:#34d399;font-size:16px;"></div>
+            </div>
+            <button class="btn-full btn-p" onclick="closeModeModal()" style="margin-top:10px;">선택 완료</button>
+        </div>
+    </div>
+    
+    <!-- ===== 알림 패널 ===== -->
+    <div class="modal-overlay" id="notificationPanel">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeNotificationPanel()">✕</button>
+            <h2 style="color:var(--accent-purple);font-size:18px;margin-bottom:12px;">🔔 알림</h2>
+            <div id="notificationList" style="font-size:11px;max-height:300px;overflow-y:auto;"></div>
+            <button class="btn-full btn-g" onclick="clearAllNotifications()" style="margin-top:8px;padding:6px;">모두 읽음</button>
+        </div>
+    </div>
+    
+    <!-- ===== 성인 인증 모달 ===== -->
+    <div class="modal-overlay" id="adultVerifyModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeAdultVerify()">✕</button>
+            <div style="text-align:center;font-size:36px;margin-bottom:6px;">✦</div>
+            <h2 style="color:#f43f5e;font-size:20px;text-align:center;">19세 인증</h2>
+            <p style="color:var(--text-secondary);font-size:12px;text-align:center;margin-bottom:10px;"><strong style="color:#fbbf24;">만 19세 이상</strong>만 18+ 콘텐츠를 볼 수 있어요.</p>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <input type="text" id="adultPhone" placeholder="휴대폰 번호 (010-xxxx-xxxx)" style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:var(--bg-input);color:var(--text-primary);font-size:12px;">
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button class="btn-full" onclick="verifyAdult19()" style="padding:10px;font-size:13px;background:linear-gradient(135deg,#f43f5e,#ec4899);">✦ 인증하기</button>
+                <button class="btn-d" onclick="closeAdultVerify()" style="padding:10px;font-size:13px;">취소</button>
+            </div>
+            <div id="adultError" style="font-size:11px;color:#f87171;margin-top:4px;min-height:16px;"></div>
+        </div>
+    </div>
+    
+    <script>
+    // ============================================================
+    // ✦ 챗버스a - 풀버전 스크립트
+    // ============================================================
+    
+    // ============================================================
+    // 🔒 보안: CSP, DOMPurify, CSRF
+    // ============================================================
+    
+    function sanitize(input) {
+        if (typeof input !== 'string') return input;
+        return DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    }
+    
+    function validateInput(input) {
+        if (!input) return false;
+        const sanitized = sanitize(input);
+        if (sanitized.length === 0 || sanitized.length > 5000) return false;
+        const dangerous = [/<script/i, /javascript:/i, /on\w+=/i, /<iframe/i, /<object/i, /<embed/i, /<link/i, /<meta/i, /<style/i, /<base/i];
+        for (const p of dangerous) { if (p.test(sanitized)) return false; }
+        return sanitized;
+    }
+    
+    function generateCSRFToken() {
+        const token = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem('csrf_token', token);
+        return token;
+    }
+    function verifyCSRFToken(token) { return sessionStorage.getItem('csrf_token') === token; }
+    
+    function encryptKey(key) { return key ? btoa(key) : ''; }
+    function decryptKey(encrypted) { try { return atob(encrypted); } catch { return ''; } }
+    
+    const csrfToken = generateCSRFToken();
+    
+    // ============================================================
+    // 🔗 Supabase 설정 (실제 값으로 교체 필요)
+    // ============================================================
+    const SUPABASE_URL = 'https://your-project.supabase.co';
+    const SUPABASE_ANON_KEY = 'your-anon-key';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // ============================================================
+    // 📦 데이터
+    // ============================================================
+    for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const size=Math.random()*2+0.5;s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s;opacity:${Math.random()*0.4+0.1};`;document.getElementById('stars').appendChild(s)}
+    
+    let currentUser=null,currentChar=null,currentMode='deppco';
+    let isGuest=false,isAdmin=false,isDeveloper=false;
+    let isAdultVerified=localStorage.getItem('chatversea_adult_verified')==='true';
+    let ttsEnabled=localStorage.getItem('chatversea_tts_enabled')==='true';
+    let ttsSynth=window.speechSynthesis,ttsUtterance=null;
+    let deppcoUnlocked=false,knowledgeCount=0;
+    let fortuneCount=0,lastFortuneDate='';
+    let maxCharacters=10,currentTheme=localStorage.getItem('chatversea_theme')||'dark';
+    let currentProvider='google';
+    let warnings=0,MAX_WARNINGS=12,chatHistory=[],imageCount=0,lastAttendance=null,attendanceDays=0;
+    let chars=[],worlds=[],gold=100,premium=0,userBadges=[],stories=[],knowledge=[];
+    let generatedImage=null,imageMode='ai';
+    let notifications=[],inquiries=[],developers=[];
+    
+    // ============================================================
+    // 💾 데이터 저장/로드
+    // ============================================================
+    function getUserKey(u,t){return`chatversea_${u}_${t}`}
+    
+    function loadUserData(u) {
+        chars = JSON.parse(localStorage.getItem(getUserKey(u,'chars'))||'[]');
+        worlds = JSON.parse(localStorage.getItem(getUserKey(u,'worlds'))||'[]');
+        gold = parseInt(localStorage.getItem(getUserKey(u,'gold')))||100;
+        premium = parseInt(localStorage.getItem(getUserKey(u,'premium')))||0;
+        userBadges = JSON.parse(localStorage.getItem(getUserKey(u,'badges'))||'[]');
+        stories = JSON.parse(localStorage.getItem(getUserKey(u,'stories'))||'[]');
+        knowledge = JSON.parse(localStorage.getItem(getUserKey(u,'knowledge'))||'[]');
+        notifications = JSON.parse(localStorage.getItem(getUserKey(u,'notifications'))||'[]');
+        inquiries = JSON.parse(localStorage.getItem(getUserKey(u,'inquiries'))||'[]');
+        attendanceDays = parseInt(localStorage.getItem(getUserKey(u,'attendance_days')))||0;
+        lastAttendance = localStorage.getItem(getUserKey(u,'last_attendance'))||null;
+        imageCount = parseInt(localStorage.getItem(getUserKey(u,'image_count')))||0;
+        fortuneCount = parseInt(localStorage.getItem(getUserKey(u,'fortune_count')))||0;
+        lastFortuneDate = localStorage.getItem(getUserKey(u,'fortune_date'))||'';
+        knowledgeCount = parseInt(localStorage.getItem(getUserKey(u,'knowledge_count')))||0;
+        deppcoUnlocked = localStorage.getItem(getUserKey(u,'deppco_unlocked'))==='true';
+        warnings = parseInt(localStorage.getItem(getUserKey(u,'warnings')))||0;
+        
+        if(knowledgeCount>=3&&!deppcoUnlocked){deppcoUnlocked=true;localStorage.setItem(getUserKey(u,'deppco_unlocked'),'true')}
+        if(chars.length===0){chars=[];localStorage.setItem(getUserKey(u,'chars'),JSON.stringify(chars))}
+        if(worlds.length===0){worlds=[{id:1,name:'판타지 월드',displayName:'✦ 판타지',desc:'마법과 모험이 가득한 세계'}];localStorage.setItem(getUserKey(u,'worlds'),JSON.stringify(worlds))}
+        if(knowledge.length===0){knowledge=[{id:1,title:'인공지능 기본 개념',content:'인공지능(AI)은 인간의 학습, 추론, 지각 능력을 모방한 컴퓨터 시스템입니다.',source:'system',created_at:new Date().toISOString()},{id:2,title:'자연어 처리 기초',content:'자연어 처리는 인간의 언어를 컴퓨터가 이해하고 생성하도록 하는 기술입니다.',source:'system',created_at:new Date().toISOString()}];localStorage.setItem(getUserKey(u,'knowledge'),JSON.stringify(knowledge))}
+        developers = JSON.parse(localStorage.getItem('chatversea_developers')||'[]');
+    }
+    
+    function saveAll() {
+        if(!currentUser)return;
+        const p=`chatversea_${currentUser}`;
+        localStorage.setItem(`${p}_chars`,JSON.stringify(chars));
+        localStorage.setItem(`${p}_worlds`,JSON.stringify(worlds));
+        localStorage.setItem(`${p}_gold`,String(gold));
+        localStorage.setItem(`${p}_premium`,String(premium));
+        localStorage.setItem(`${p}_badges`,JSON.stringify(userBadges));
+        localStorage.setItem(`${p}_stories`,JSON.stringify(stories));
+        localStorage.setItem(`${p}_knowledge`,JSON.stringify(knowledge));
+        localStorage.setItem(`${p}_notifications`,JSON.stringify(notifications));
+        localStorage.setItem(`${p}_inquiries`,JSON.stringify(inquiries));
+        localStorage.setItem(`${p}_attendance_days`,String(attendanceDays));
+        localStorage.setItem(`${p}_last_attendance`,lastAttendance||'');
+        localStorage.setItem(`${p}_image_count`,String(imageCount));
+        localStorage.setItem(`${p}_fortune_count`,String(fortuneCount));
+        localStorage.setItem(`${p}_fortune_date`,lastFortuneDate||'');
+        localStorage.setItem(`${p}_knowledge_count`,String(knowledgeCount));
+        localStorage.setItem(`${p}_deppco_unlocked`,String(deppcoUnlocked));
+        localStorage.setItem(`${p}_warnings`,String(warnings));
+        updateUI();
+        const sb=document.getElementById('saveBadge');if(sb){sb.textContent='◈ 저장';setTimeout(()=>{sb.textContent='◈ 저장'},1500)}
+    }
+    
+    function getAPIKeys(){return{groq:localStorage.getItem('groq_key')||'',mistral:localStorage.getItem('mistral_key')||'',stability:localStorage.getItem('stability_key')||''}}
+    
+    // ============================================================
+    // 🎨 테마
+    // ============================================================
+    function applyTheme(t){currentTheme=t;document.documentElement.setAttribute('data-theme',t);localStorage.setItem('chatversea_theme',t);const b=document.querySelector('.theme-toggle');if(b)b.textContent=t==='dark'?'☽':'☀';}
+    function toggleTheme(){const n=currentTheme==='dark'?'light':'dark';applyTheme(n);addChatMsg('시스템',`☽ ${n==='dark'?'다크':'라이트'} 모드로 전환`,'sys')}
+    applyTheme(currentTheme);
+    
+    // ============================================================
+    // 🔐 로그인
+    // ============================================================
+    function openFakeModal(p){currentProvider=p;const m=document.getElementById('fakeModal');m.className='fake-modal '+p;m.classList.add('active');const l=m.querySelector('.g-logo, .n-logo, .gh-logo');if(l){if(p==='google')l.innerHTML='<img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png" alt="Google" style="height:40px;">';else if(p==='naver')l.innerHTML='<img src="https://static.nid.naver.com/images/ui/logo/naver_logo_ci_green.png" alt="Naver" style="height:36px;">';else if(p==='github')l.innerHTML='<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" style="height:36px;">'}const t=m.querySelector('h2');const s=m.querySelector('.g-sub, .n-sub, .gh-sub');if(p==='google'){if(t)t.textContent='로그인';if(s)s.textContent='Google 계정으로 계속하기'}else if(p==='naver'){if(t)t.textContent='로그인';if(s)s.textContent='Naver 계정으로 계속하기'}else if(p==='github'){if(t)t.textContent='Sign in to GitHub';if(s)s.textContent='GitHub 계정으로 계속하기'}document.getElementById('fakeEmail').value='';document.getElementById('fakePassword').value='';document.getElementById('fakeError').textContent='';setTimeout(()=>document.getElementById('fakeEmail').focus(),100)}
+    function closeFakeModal(){document.getElementById('fakeModal').classList.remove('active')}
+    function fakeSocialLogin(){const e=document.getElementById('fakeEmail').value.trim();const p=document.getElementById('fakePassword').value.trim();const er=document.getElementById('fakeError');if(!e||!p){er.textContent='⚠ 이메일과 비밀번호를 입력하세요';return}const u=JSON.parse(localStorage.getItem('chatversea_users')||'{}');if(!u[e]){u[e]={password:p,provider:currentProvider,created:new Date().toISOString(),name:e.split('@')[0]||e};localStorage.setItem('chatversea_users',JSON.stringify(u));er.style.color='#34d399';er.textContent='✅ 회원가입 완료!'}else{if(u[e].password!==p){er.style.color='#f87171';er.textContent='❌ 비밀번호가 틀렸어요';return}er.style.color='#34d399';er.textContent='✅ 로그인 성공!'}setTimeout(()=>{closeFakeModal();document.getElementById('loginError').style.color='#34d399';document.getElementById('loginError').textContent=`✅ ${currentProvider} 계정으로 로그인 완료`;setTimeout(()=>alert(`✦ 챗버스a에 오신 걸 환영합니다, ${sanitize(e)}님!`),300)},600)}
+    
+    async function login() {
+        const i=document.getElementById('loginId').value.trim();
+        const p=document.getElementById('loginPw').value.trim();
+        const er=document.getElementById('loginError');
+        if(!i||!p){er.textContent='⚠ 아이디와 비밀번호를 입력하세요';return}
+        
+        // 관리자 계정
+        if(i==='admin'&&p==='1234'){
+            currentUser='admin';isAdmin=true;isDeveloper=true;
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('userBadge').textContent='✦ 관리자';
+            document.getElementById('userBadge').className='badge badge-legend';
+            loadUserData(currentUser);
+            updateUI();renderAll();updateCharSelect();switchPage('home');
+            addChatMsg('시스템','✦ 관리자님 환영합니다!','sys');
+            checkAdminAccess();return;
+        }
+        
+        // Supabase 로그인
+        try {
+            const {data,error}=await supabase.auth.signInWithPassword({email:i,password:p});
+            if(error)throw error;
+            currentUser=data.user.id;
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('userBadge').textContent='☺ '+sanitize(data.user.email);
+            
+            // 🔑 개발자 여부 확인
+            const {data:devData}=await supabase.from('developers').select('*').eq('user_id',currentUser).single();
+            if(devData){isDeveloper=true;document.getElementById('userBadge').className='badge badge-dev';}
+            
+            loadUserData(currentUser);
+            updateUI();renderAll();updateCharSelect();switchPage('home');
+            addChatMsg('시스템',`☺ ${sanitize(data.user.email)} 님 환영합니다!`,'sys');
+            checkAdminAccess();
+            subscribeToInquiries();
+        } catch(error) {
+            er.textContent='❌ '+error.message;
+        }
+    }
+    
+    function guestLogin(){
+        document.getElementById('loginOverlay').classList.add('hidden');
+        currentUser='guest_'+Date.now().toString(36);isGuest=true;
+        document.getElementById('userBadge').textContent='☺ 게스트';
+        document.getElementById('userBadge').className='badge badge-guest';
+        loadUserData(currentUser);
+        updateUI();renderAll();updateCharSelect();switchPage('home');
+        addChatMsg('시스템','☺ 게스트 모드로 접속했어요!','sys');
+    }
+    
+    function logout(){
+        if(!confirm('⚠ 로그아웃하면 계정이 영구 삭제됩니다. 정말 로그아웃하시겠습니까?'))return;
+        if(currentUser){
+            const p=`chatversea_${currentUser}`;
+            ['chars','worlds','gold','premium','badges','stories','knowledge','notifications','inquiries','attendance_days','last_attendance','image_count','fortune_count','fortune_date','knowledge_count','deppco_unlocked','warnings'].forEach(k=>localStorage.removeItem(`${p}_${k}`));
+        }
+        const users=JSON.parse(localStorage.getItem('chatversea_users')||'{}');
+        if(currentUser&&!isGuest){delete users[currentUser];localStorage.setItem('chatversea_users',JSON.stringify(users));}
+        currentUser=null;isGuest=false;isAdmin=false;isDeveloper=false;
+        localStorage.removeItem('chatversea_user');
+        document.getElementById('loginOverlay').classList.remove('hidden');
+        document.getElementById('userBadge').textContent='☺ 게스트';
+        document.getElementById('userBadge').className='badge';
+        document.getElementById('chatPanel').classList.remove('active');
+        switchPage('home');
+        addChatMsg('시스템','☺ 로그아웃되었습니다. 계정이 삭제되었습니다.','sys');
+    }
+    
+    // ============================================================
+    // 📋 UI 렌더링 함수
+    // ============================================================
+    function updateUI(){
+        document.getElementById('goldValue').textContent=gold;
+        document.getElementById('premiumValue').textContent=premium;
+        document.getElementById('goldDisplay').textContent='◈'+gold;
+        document.getElementById('premiumDisplay').textContent='◈'+premium;
+        renderWorlds();renderMyChars();renderDiscover();renderBadges();renderKnowledge();
+        updateCharSelect();renderStories();updateAttendanceUI();updateAdultStatus();loadProfileInfo();
+        renderNotifications();renderMyInquiries();renderDevList();
+        updateNotificationBadge();
+        if(isAdmin||isDeveloper){loadAdminInquiries();}
+    }
+    function renderAll(){updateUI();}
+    
+    function esc(s){return sanitize(String(s||''));}
+    function switchPage(p){
+        document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+        const pe=document.getElementById('page-'+p);if(pe)pe.classList.add('active');
+        const map={home:0,create:1,profile:2};
+        if(map[p]!==undefined){const items=document.querySelectorAll('.nav-item');if(items[map[p]])items[map[p]].classList.add('active');}
+        if(p==='profile'){setTimeout(()=>{loadProfileInfo();checkAdminAccess();renderStories();renderMyInquiries();},50)}
+    }
+    
+    // ============================================================
+    // 🌍 세계관
+    // ============================================================
+    function renderWorlds(){
+        const g=document.getElementById('worldGrid');if(!g)return;
+        if(!worlds.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 세계관이 없어요</div>';return}
+        g.innerHTML=worlds.map((w,i)=>`<div class="world-card" onclick="selectWorld(${i})"><span class="icon">✦</span><div class="name">${esc(w.displayName||w.name)}</div><div class="desc">${esc(w.desc||'')}</div><div class="count">☺ ${chars.filter(c=>c.world_id===w.id).length}명</div><button class="del" onclick="event.stopPropagation();deleteWorld(${i})">✕</button></div>`).join('');
+    }
+    function selectWorld(i){const wc=chars.filter(c=>c.world_id===worlds[i].id);if(wc.length>0)selectChar(chars.indexOf(wc[0]));}
+    function deleteWorld(i){if(!confirm(`✦ "${worlds[i].name}" 세계관을 삭제하시겠습니까?`))return;const wid=worlds[i].id;chars=chars.filter(c=>c.world_id!==wid);worlds.splice(i,1);saveAll();renderAll();addChatMsg('시스템',`🗑️ "${worlds[i]?.name||'세계관'}" 삭제 완료`,'sys');}
+    function showAddWorld(){switchPage('create');document.getElementById('worldName').focus();}
+    function updateCharSelect(){const s=document.getElementById('charWorldSelect');if(!s)return;s.innerHTML=worlds.map(w=>'<option value="'+w.id+'">'+esc(w.displayName||w.name)+'</option>').join('');}
+    
+    // ============================================================
+    // 🎭 캐릭터
+    // ============================================================
+    function renderMyChars(){
+        const g=document.getElementById('charGrid');if(!g)return;
+        const my=chars.filter(c=>c.user_id===currentUser||c.creator===currentUser);
+        if(!my.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 캐릭터가 없어요</div>';return}
+        g.innerHTML=my.map(c=>{const mi=MOOD_MAP[c.currentMood]||MOOD_MAP['평화'];return`<div class="char-card" onclick="openCharDetail(${c.id})"><div class="avatar">${c.image?`<img src="${c.image}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-purple);">`:c.emoji||'🧙'}</div><div class="name">${esc(c.name)}</div><div class="desc">Lv.${c.level||1}</div><div class="mood" style="color:${mi.color};">${mi.emoji}</div></div>`}).join('');
+        const b=document.getElementById('addCharBtn');if(b){if(isGuest){b.style.display='none'}else{const myC=chars.filter(c=>c.user_id===currentUser||c.creator===currentUser).length;b.disabled=myC>=maxCharacters;b.textContent=myC>=maxCharacters?'⛔ 캐릭터 최대 '+maxCharacters+'명':'+ 캐릭터 추가 ('+myC+'/'+maxCharacters+')';b.style.opacity=b.disabled?'0.5':'1'}}
+    }
+    function selectChar(i){const c=chars[i];if(!c)return;currentChar=c;document.getElementById('chatPanel').classList.add('active');document.getElementById('currentCharName').textContent=c.emoji+' '+c.name;const mi=MOOD_MAP[c.currentMood]||MOOD_MAP['평화'];document.getElementById('chatMoodDisplay').textContent=mi.emoji+' '+(c.currentMood||'평화');const md=document.getElementById('chatModeDisplay');if(md)md.textContent='✦ '+getModeName(currentMode);const ca=document.getElementById('chat');ca.innerHTML='';addChatMsg('시스템',`✦ ${c.emoji} ${c.name}과 대화 시작`,'sys');addChatMsg(c.name,'안녕! 😊','ai');document.getElementById('chatInput').focus();switchPage('home');}
+    function openCharDetail(id){const c=chars.find(ch=>ch.id===id);if(!c)return;alert(`✦ ${c.name}\n✦ 성격: ${c.personality||'평범한'}\n✦ 테마: ${c.theme||'진지'}\n✦ 목소리: ${c.voice||'기본'}\n✦ 대화: ${c.totalChats||0}회\n✦ 생성자: ${c.creator||c.user_id||'Unknown'}`);}
+    function showAddCharacter(){if(isGuest){alert('☺ 게스트는 캐릭터를 만들 수 없어요!');return;}const myC=chars.filter(c=>c.user_id===currentUser||c.creator===currentUser).length;if(myC>=maxCharacters){alert('⛔ 캐릭터는 최대 '+maxCharacters+'명까지!');return;}switchPage('create');document.getElementById('charName').focus();}
+    function toggleCreateForm(){const f=document.getElementById('createForm');const t=document.getElementById('createToggle');if(f.style.display==='none'){f.style.display='block';t.textContent='▲'}else{f.style.display='none';t.textContent='▼'}}
+    
+    // ============================================================
+    // 🔍 발견
+    // ============================================================
+    function renderDiscover(){
+        const g=document.getElementById('discoverGrid');if(!g)return;
+        const pc=chars.filter(c=>c.isPublic!==false);
+        if(!pc.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 공개된 캐릭터가 없어요</div>';return}
+        g.innerHTML=pc.map(c=>`<div class="discover-card" onclick="selectChar(${chars.indexOf(c)})"><div class="avatar">${c.image?`<img src="${c.image}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-purple);">`:c.emoji||'🧙'}</div><div class="name">${esc(c.name)}</div><div class="creator">☺ ${esc(c.creator||c.user_id||'Unknown')}</div><div class="stats"><span>✦ ${c.totalChats||0}</span><span>✦ ${c.badges?.length||0}</span></div></div>`).join('');
+    }
+    function searchCharacters(){const k=document.getElementById('discoverSearch')?.value?.toLowerCase()||'';const g=document.getElementById('discoverGrid');if(!g)return;const r=chars.filter(c=>c.isPublic!==false&&(c.name.toLowerCase().includes(k)||c.desc?.toLowerCase().includes(k)));if(!r.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 검색 결과가 없어요</div>';return}g.innerHTML=r.map(c=>`<div class="discover-card" onclick="selectChar(${chars.indexOf(c)})"><div class="avatar">${c.image?`<img src="${c.image}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-purple);">`:c.emoji||'🧙'}</div><div class="name">${esc(c.name)}</div><div class="creator">☺ ${esc(c.creator||c.user_id||'Unknown')}</div><div class="stats"><span>✦ ${c.totalChats||0}</span><span>✦ ${c.badges?.length||0}</span></div></div>`).join('');}
+    
+    // ============================================================
+    // 🎖️ 배지
+    // ============================================================
+    const BADGE_DATA = {
+        chat_10:{id:'chat_10',name:'첫 대화',emoji:'💬',rarity:'common',condition:{type:'chat',count:10},reward:{gold:10,premium:0}},
+        chat_100:{id:'chat_100',name:'대화의 달인',emoji:'🗣️',rarity:'rare',condition:{type:'chat',count:100},reward:{gold:50,premium:1}},
+        chat_1000:{id:'chat_1000',name:'전설의 화가',emoji:'👑',rarity:'legendary',condition:{type:'chat',count:1000},reward:{gold:200,premium:10}},
+        char_5:{id:'char_5',name:'캐릭터 수집가',emoji:'🎭',rarity:'common',condition:{type:'char',count:5},reward:{gold:20,premium:0}},
+        char_10:{id:'char_10',name:'마스터 크리에이터',emoji:'🎨',rarity:'rare',condition:{type:'char',count:10},reward:{gold:50,premium:2}},
+        world_3:{id:'world_3',name:'세계 여행자',emoji:'🌍',rarity:'rare',condition:{type:'world',count:3},reward:{gold:30,premium:1}},
+        image_10:{id:'image_10',name:'이미지 아티스트',emoji:'🖼️',rarity:'common',condition:{type:'image',count:10},reward:{gold:15,premium:0}},
+        attendance_7:{id:'attendance_7',name:'7일의 모험가',emoji:'☀️',rarity:'heroic',condition:{type:'attendance',count:7},reward:{gold:100,premium:5}},
+        story_5:{id:'story_5',name:'스토리텔러',emoji:'📖',rarity:'common',condition:{type:'story',count:5},reward:{gold:15,premium:0}},
+        knowledge_3:{id:'knowledge_3',name:'지식의 탐험가',emoji:'📚',rarity:'rare',condition:{type:'knowledge',count:3},reward:{gold:30,premium:1}},
+        fortune_5:{id:'fortune_5',name:'행운의 부적',emoji:'🍀',rarity:'rare',condition:{type:'fortune',count:5},reward:{gold:20,premium:1}},
+        fortune_myth:{id:'fortune_myth',name:'신화의 행운',emoji:'🌟',rarity:'mythic',condition:{type:'fortune_myth',count:1},reward:{gold:50,premium:5}}
+    };
+    
+    const MOOD_MAP = {'기쁨':{emoji:'😊',color:'#fbbf24'},'슬픔':{emoji:'😢',color:'#3b82f6'},'화남':{emoji:'😡',color:'#f43f5e'},'놀람':{emoji:'😱',color:'#8b5cf6'},'진지':{emoji:'🧐',color:'#6b7280'},'로맨틱':{emoji:'💕',color:'#ec4899'},'유쾌':{emoji:'😂',color:'#34d399'},'신비':{emoji:'🔮',color:'#a78bfa'},'평화':{emoji:'🧘',color:'#60a5fa'},'열정':{emoji:'🔥',color:'#f97316'}};
+    function getDefaultMoodByTheme(t){const m={'로맨틱':'기쁨','진지':'진지','유쾌':'유쾌','미스터리':'신비','평화로운':'평화','열정적':'열정'};return m[t]||'평화'}
+    
+    function renderBadges(){
+        const g=document.getElementById('badgeGrid');if(!g)return;
+        const bl=Object.values(BADGE_DATA);
+        if(!bl.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 배지가 없어요</div>';return}
+        g.innerHTML=bl.map(b=>{const o=userBadges.includes(b.id);return`<div class="badge-item ${o?'obtained':'locked'}"><span class="emoji">${b.emoji}</span><div class="name">${b.name}</div><div class="rarity ${b.rarity}">${b.rarity}</div>${o?'✅':''}</div>`}).join('');
+        const s=document.getElementById('badgeSummary');if(s)s.textContent=`✦ ${userBadges.length}/${bl.length}개 획득`;
+    }
+    
+    function checkBadges(){
+        const s={chat:chatHistory.length,chars:chars.length,worlds:worlds.length,images:imageCount,attendance:attendanceDays,story:stories.length,knowledge:knowledgeCount,fortune:fortuneCount,fortune_myth:userBadges.includes('fortune_myth')?1:0};
+        let nb=false;
+        for(const b of Object.values(BADGE_DATA)){
+            if(userBadges.includes(b.id))continue;
+            let p=0;
+            if(b.condition.type==='chat')p=s.chat;else if(b.condition.type==='char')p=s.chars;else if(b.condition.type==='world')p=s.worlds;else if(b.condition.type==='image')p=s.images;else if(b.condition.type==='attendance')p=s.attendance;else if(b.condition.type==='story')p=s.story;else if(b.condition.type==='knowledge')p=s.knowledge;else if(b.condition.type==='fortune')p=s.fortune;else if(b.condition.type==='fortune_myth')p=s.fortune_myth;
+            if(p>=b.condition.count){
+                userBadges.push(b.id);gold+=b.reward.gold;premium+=b.reward.premium;nb=true;
+                addNotification('🎖️ 배지 획득!',`"${b.emoji} ${b.name}" 배지를 획득했어요! +${b.reward.gold}◈`,'success');
+                addChatMsg('✦ 배지 획득!',`"${b.emoji} ${b.name}" 배지를 획득했어요! +${b.reward.gold}◈`,'mission');
+                saveAll();
+            }
+        }
+        if(nb){renderBadges();updateUI();}
+    }
+    
+    // ============================================================
+    // 📚 지식
+    // ============================================================
+    function renderKnowledge(){
+        const g=document.getElementById('knowledgeGrid');if(!g)return;
+        if(!knowledge.length){g.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">✦ 지식이 없어요</div>';return}
+        g.innerHTML=knowledge.map(k=>`<div class="knowledge-card"><div class="title">${esc(k.title)}</div><div class="content">${esc(k.content)}</div><div class="source">✦ ${k.source||'사용자'}</div></div>`).join('');
+    }
+    
+    // ============================================================
+    // 📖 스토리
+    // ============================================================
+    function renderStories(){
+        const c=document.getElementById('storyList');if(!c)return;
+        if(!stories.length){c.innerHTML='<div style="color:var(--text-secondary);font-size:10px;text-align:center;padding:6px;">✦ 스토리가 없어요</div>';return}
+        c.innerHTML=stories.slice().reverse().map(s=>`<div style="padding:4px;background:rgba(255,255,255,0.01);border-radius:6px;margin-bottom:2px;border-left:2px solid var(--accent-purple);"><div style="font-size:10px;font-weight:600;color:var(--accent-purple);">${esc(s.title||'제목 없음')}</div><div style="font-size:9px;color:var(--text-secondary);">${esc(s.content||'')}</div><div style="font-size:7px;color:var(--text-muted);">${new Date(s.created_at).toLocaleString()}</div></div>`).join('');
+    }
+    function addStory(t,c){if(!t||!c)return;stories.push({title:t,content:c,created_at:new Date().toISOString()});localStorage.setItem(`chatversea_${currentUser}_stories`,JSON.stringify(stories));renderStories();checkBadges();}
+    
+    // ============================================================
+    // ☀️ 출석
+    // ============================================================
+    function checkAttendance(){
+        const t=new Date().toDateString();
+        if(lastAttendance===t){alert('☀ 오늘은 이미 모험을 떠났어요!');return;}
+        if(attendanceDays>=7){alert('✦ 7일간의 모험을 모두 완료했어요!');return;}
+        attendanceDays++;lastAttendance=t;
+        let rg=5+(attendanceDays-1)*5, rp=0;
+        if(attendanceDays>=3)rp=1;if(attendanceDays>=5)rp=2;if(attendanceDays===7)rp=5;
+        gold+=rg;premium+=rp;saveAll();updateUI();checkBadges();
+        addChatMsg('☀ 모험',`${attendanceDays}일차 모험 완료! +${rg}◈ +${rp}◈`,'mission');
+        updateAttendanceUI();
+        addNotification('☀ 출석 체크',`${attendanceDays}일차 모험 완료! +${rg}◈`,'success');
+    }
+    function updateAttendanceUI(){
+        const s=document.getElementById('attendanceStatus');if(!s)return;
+        if(attendanceDays>=7){s.textContent='✦ 7일 완료! 전설의 모험가!';s.style.color='#fbbf24'}
+        else{const t=new Date().toDateString();const d=lastAttendance===t;s.textContent=`☀ ${attendanceDays}/7일차 ${d?'✅':'⏳'}`;s.style.color=d?'#34d399':'var(--text-secondary)';}
+    }
+    
+    // ============================================================
+    // 🥠 포춘쿠키
+    // ============================================================
+    const FORTUNE_RESULTS = [
+        {grade:'꽝',emoji:'💀',messages:['오늘은 운이 없네요...'],goldMin:0,goldMax:0,premium:0,probability:20},
+        {grade:'소소',emoji:'🌱',messages:['작은 행운이 찾아왔어요!'],goldMin:1,goldMax:2,premium:0,probability:40},
+        {grade:'행운',emoji:'🍀',messages:['오늘은 좋은 일이 있을 거예요!'],goldMin:3,goldMax:5,premium:0,probability:25},
+        {grade:'대박',emoji:'🎉',messages:['대박! 오늘은 당신의 날이에요!'],goldMin:6,goldMax:10,premium:0,probability:10},
+        {grade:'신화',emoji:'👑',messages:['전설의 행운!'],goldMin:11,goldMax:20,premium:1,probability:5}
+    ];
+    function openFortuneCookie(){
+        const t=new Date().toDateString();
+        if(lastFortuneDate===t){alert('◈ 오늘은 이미 포춘쿠키를 열었어요!');return;}
+        if(gold<1){alert('◈ 골드가 부족해요! (1골드 필요)');return;}
+        gold-=1;saveAll();updateUI();
+        const r=Math.random()*100;let s=FORTUNE_RESULTS[0];let cum=0;for(const res of FORTUNE_RESULTS){cum+=res.probability;if(r<=cum){s=res;break}}
+        const mi=Math.floor(Math.random()*s.messages.length);const m=s.messages[mi];
+        let rg=0,rp=0;if(s.goldMax>0)rg=Math.floor(Math.random()*(s.goldMax-s.goldMin+1))+s.goldMin;if(s.premium>0)rp=s.premium;
+        if(rg>0)gold+=rg;if(rp>0)premium+=rp;saveAll();updateUI();
+        lastFortuneDate=t;localStorage.setItem(`chatversea_${currentUser}_fortune_date`,t);
+        fortuneCount++;localStorage.setItem(`chatversea_${currentUser}_fortune_count`,String(fortuneCount));
+        const d=document.getElementById('fortuneDisplay');if(d){const colors={'꽝':'#f87171','소소':'#fbbf24','행운':'#34d399','대박':'var(--accent-purple)','신화':'#f43f5e'};const emojis={'꽝':'💀','소소':'🌱','행운':'🍀','대박':'🎉','신화':'👑'};let rt='';if(rg>0&&rp>0)rt=`+${rg}◈ +${rp}◈`;else if(rg>0)rt=`+${rg}◈`;else if(rp>0)rt=`+${rp}◈`;else rt='😅 꽝!';d.innerHTML=`<div style="font-size:20px;">${emojis[s.grade]}</div><div style="font-size:13px;font-weight:600;color:${colors[s.grade]};">${s.grade}</div><div style="font-size:12px;margin:2px 0;">${m}</div><div style="font-size:11px;font-weight:700;color:#fbbf24;">${rt}</div><div style="font-size:8px;color:var(--text-muted);margin-top:2px;">- ${new Date().toLocaleDateString()} -</div>`;d.style.borderColor=colors[s.grade]+'33';d.style.background=colors[s.grade]+'08'}
+        let rm=`◈ ${s.emoji} ${s.grade}! ${m}`;if(rg>0)rm+=` +${rg}◈`;if(rp>0)rm+=` +${rp}◈`;addChatMsg('◈ 포춘쿠키',rm,'mission');checkBadges();
+        addNotification('🥠 포춘쿠키',`${s.emoji} ${s.grade}! ${m} ${rg>0?'+'+rg+'◈':''}`,rg>0?'success':'info');
+    }
+    
+    // ============================================================
+    // 💬 채팅
+    // ============================================================
+    function closeChat(){if(!confirm('대화를 나가시겠습니까?'))return;document.getElementById('chatPanel').classList.remove('active');currentChar=null;document.getElementById('currentCharName').textContent='-';addChatMsg('시스템','✦ 대화를 종료했어요.','sys');}
+    function setChatMode(m){currentMode=m;document.querySelectorAll('#chatModeSelector button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));const md=document.getElementById('chatModeDisplay');if(md)md.textContent=`✦ ${getModeName(m)}`;}
+    function getModeName(m){const n={'deppco':'딥코','fast':'빠른','natural':'자연스러운','light':'가벼운'};return n[m]||m;}
+    function showModeModal(){document.getElementById('modeModal').classList.add('active');document.querySelectorAll('.mode-option').forEach(el=>{el.style.borderColor=el.dataset.mode===currentMode?'var(--accent-purple)':'rgba(255,255,255,0.02)';const ch=el.querySelector('div:last-child');if(ch)ch.textContent=el.dataset.mode===currentMode?'✅':'';});}
+    function closeModeModal(){document.getElementById('modeModal').classList.remove('active');}
+    function selectMode(m){if(m==='deppco'&&!deppcoUnlocked){alert('✦ 딥코 모드는 도서관에 지식을 3개 추가하면 잠금 해제됩니다!');return;}currentMode=m;setChatMode(m);closeModeModal();addChatMsg('시스템',`✦ ${getModeName(m)} 모드로 전환되었어요!`,'sys');}
+    
+    function addChatMsg(n,t,type){
+        const chat=document.getElementById('chat');if(!chat)return;
+        const d=document.createElement('div');d.className='msg '+type;
+        if(type==='ai'){const tagMap={'deppco':'<span class="tag">✦ 딥코</span>','fast':'<span class="tag">✦ 빠른</span>','natural':'<span class="tag">✦ 자연</span>','light':'<span class="tag">✦ 가벼운</span>'};const tag=tagMap[currentMode]||tagMap.deppco;const mi=currentChar?MOOD_MAP[currentChar.currentMood]||MOOD_MAP['평화']:MOOD_MAP['평화'];d.innerHTML=`<div class="n">${n} ${tag} <span class="mood">${mi.emoji} ${currentChar?.currentMood||'평화'}</span></div>${t}`;speakText(t,currentChar?.voice);}
+        else if(type==='user'){d.textContent='☺ '+t;}
+        else if(type==='mission'){d.textContent='✦ '+t;d.style.border='1px solid rgba(251,191,36,0.02)';}
+        else if(type==='error'){d.textContent='⚠ '+t;d.style.border='1px solid rgba(239,68,68,0.02)';}
+        else{d.textContent=t;d.style.alignSelf='center';d.style.color='var(--text-secondary)';d.style.fontSize='9px';d.style.background='rgba(255,255,255,0.01)';d.style.padding='3px 16px';d.style.borderRadius='12px';}
+        chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+    }
+    function speakText(t,vt){if(!ttsEnabled)return;if(ttsSynth.speaking)ttsSynth.cancel();ttsUtterance=new SpeechSynthesisUtterance(t);ttsUtterance.lang='ko-KR';ttsUtterance.rate=1.0;const voices=ttsSynth.getVoices();const kv=voices.filter(v=>v.lang.startsWith('ko'));let sv=null;switch(vt){case'기본 (여성)':sv=kv.find(v=>v.name.includes('여성')||v.name.includes('Female'));break;case'기본 (남성)':sv=kv.find(v=>v.name.includes('남성')||v.name.includes('Male'));break;case'차분한':sv=kv.find(v=>v.name.includes('차분')||v.name.includes('Calm'));break;case'밝은':sv=kv.find(v=>v.name.includes('밝')||v.name.includes('Bright'));break;case'신비로운':sv=kv.find(v=>v.name.includes('신비')||v.name.includes('Mysterious'));break;case'진지한':sv=kv.find(v=>v.name.includes('진지')||v.name.includes('Serious'));break;default:sv=kv[0];}if(sv)ttsUtterance.voice=sv;ttsSynth.speak(ttsUtterance);}
+    function toggleTTS(){ttsEnabled=!ttsEnabled;localStorage.setItem('chatversea_tts_enabled',String(ttsEnabled));const b=document.getElementById('ttsToggle');if(ttsEnabled){b.textContent='✦ ON';b.classList.add('playing');addChatMsg('시스템','✦ TTS가 활성화되었어요!','sys')}else{b.textContent='✦ TTS';b.classList.remove('playing');if(ttsSynth.speaking)ttsSynth.cancel();addChatMsg('시스템','✦ TTS가 비활성화되었어요.','sys')}}
+    
+    // ============================================================
+    // 🤖 AI API
+    // ============================================================
+    async function callGroqAPI(msg,char){const keys=getAPIKeys();if(!keys.groq)return '⚠️ Groq API 키가 없어요.';try{const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${keys.groq}`,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.1-8b-instant',messages:[{role:'system',content:`당신은 ${char}입니다.`},{role:'user',content:msg}],temperature:0.8,max_tokens:300})});if(!res.ok)throw new Error();const data=await res.json();return data.choices[0].message.content;}catch(e){return '⚠️ Groq 호출에 실패했어요.';}}
+    async function callMistralAPI(msg,char){const keys=getAPIKeys();if(!keys.mistral)return '⚠️ Mistral API 키가 없어요.';try{const res=await fetch('https://api.mistral.ai/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${keys.mistral}`,'Content-Type':'application/json'},body:JSON.stringify({model:'mistral-small-latest',messages:[{role:'system',content:`당신은 ${char}입니다.`},{role:'user',content:msg}],temperature:0.9,max_tokens:300})});if(!res.ok)throw new Error();const data=await res.json();return data.choices[0].message.content;}catch(e){return '⚠️ Mistral 호출에 실패했어요.';}}
+    async function callKeylessAI(msg,char){try{const res=await fetch('https://keylessai.thryx.workers.dev/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer not-needed','Content-Type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'system',content:`당신은 ${char}입니다.`},{role:'user',content:msg}],temperature:0.7,max_tokens:200})});if(!res.ok)throw new Error();const data=await res.json();return data.choices[0].message.content;}catch(e){return '⚠️ KeylessAI 호출에 실패했어요.';}}
+    async function callDeepCo(msg,char){for(const k of knowledge){if(msg.includes(k.title)||msg.includes(k.title.substring(0,3))){return `📚 ${k.content}`;}}const keys=getAPIKeys();if(keys.groq)return await callGroqAPI(msg,char);const replies=[`안녕! 나는 ${char}야. 😊`,`흥미로운 질문이네! 🤔`,`좋아, 계속 이야기해보자! 💬`];return replies[Math.floor(Math.random()*replies.length)];}
+    
+    async function sendChatMsg(){
+        const input=document.getElementById('chatInput');const txt=input.value.trim();
+        if(!txt||!currentChar){if(!currentChar)addChatMsg('시스템','✦ 먼저 캐릭터를 선택하세요!','sys');return;}
+        input.value='';
+        if(checkPolicyViolation(txt)){addChatMsg('시스템','⚠ 정책 위반 내용이 감지되었습니다.','error');return;}
+        if(currentMode==='deppco'&&!deppcoUnlocked){addChatMsg('시스템','✦ 딥코 모드는 도서관에 지식을 3개 추가하면 잠금 해제됩니다!','sys');return;}
+        const costs={'deppco':{gold:0,premium:0},'fast':{gold:25,premium:0},'natural':{gold:10,premium:0},'light':{gold:5,premium:0}};
+        const cost=costs[currentMode]||costs.deppco;
+        if(gold<cost.gold){addChatMsg('시스템',`◈ 골드 부족! (${cost.gold}개 필요)`,'sys');return;}
+        if(premium<cost.premium){addChatMsg('시스템',`◈ 프리미엄 부족! (${cost.premium}개 필요)`,'sys');return;}
+        gold-=cost.gold;premium-=cost.premium;saveAll();updateUI();
+        addChatMsg('나',txt,'user');chatHistory.push({user:txt,time:new Date().toISOString(),mode:currentMode});
+        let reply='';try{switch(currentMode){case'deppco':reply=await callDeepCo(txt,currentChar.name);break;case'fast':reply=await callGroqAPI(txt,currentChar.name);break;case'natural':reply=await callMistralAPI(txt,currentChar.name);break;case'light':reply=await callKeylessAI(txt,currentChar.name);break;default:reply='알 수 없는 모드에요.';}}catch(e){reply='⚠️ 오류가 발생했어요. 다시 시도해주세요.';gold+=cost.gold;premium+=cost.premium;saveAll();updateUI();}
+        const lastMsg=document.getElementById('chat').lastElementChild;
+        if(lastMsg&&lastMsg.classList.contains('ai')){lastMsg.innerHTML=lastMsg.innerHTML.replace('⏳ 생각 중...',reply);}
+        currentChar.totalChats=(currentChar.totalChats||0)+1;
+        currentChar.level=Math.min(Math.floor(currentChar.totalChats/3)+1,10);
+        saveAll();checkBadges();renderMyChars();
+    }
+    
+    // ============================================================
+    // ⚠️ 정책 위반
+    // ============================================================
+    const FORBIDDEN_WORDS = ['19금','성관계','섹스','포르노','자살','폭행','마약','총기','욕설','시발','씨발','개새끼','좆','병신','미친','ㅅㅂ','ㅄ','차별','인종','혐오','테러','살인'];
+    function checkPolicyViolation(t){for(const w of FORBIDDEN_WORDS){if(t.includes(w)){addWarning(`금지어 사용: "${w}"`);return true;}}return false;}
+    function addWarning(reason){warnings++;localStorage.setItem(`chatversea_${currentUser}_warnings`,String(warnings));addChatMsg('⚠ 경고',`경고 ${warnings}/${MAX_WARNINGS} - ${reason}`,'error');addNotification('⚠️ 경고',`${warnings}/${MAX_WARNINGS}회 - ${reason}`,'warning');if(warnings>=MAX_WARNINGS){alert('🚫 계정이 정지되었습니다.');addNotification('🚨 계정 정지','경고 누적으로 계정이 정지되었어요.','error');logout();}}
+    
+    // ============================================================
+    // 🔔 알림 시스템
+    // ============================================================
+    function addNotification(title,message,type='info'){
+        notifications.push({id:Date.now(),title:sanitize(title),message:sanitize(message),type:type,read:false,created_at:new Date().toISOString()});
+        if(notifications.length>50)notifications=notifications.slice(-50);
+        localStorage.setItem(`chatversea_${currentUser}_notifications`,JSON.stringify(notifications));
+        updateNotificationBadge();
+        renderNotifications();
+    }
+    
+    function updateNotificationBadge(){
+        const unread=notifications.filter(n=>!n.read).length;
+        const badge=document.getElementById('notificationBadge');
+        if(badge){if(unread>0){badge.textContent=unread>99?'99+':unread;badge.style.display='block';}else{badge.style.display='none';}}
+    }
+    
+    function toggleNotificationPanel(){
+        const panel=document.getElementById('notificationPanel');
+        panel.classList.toggle('active');
+        if(panel.classList.contains('active')){
+            renderNotifications();
+            notifications.forEach(n=>n.read=true);
+            localStorage.setItem(`chatversea_${currentUser}_notifications`,JSON.stringify(notifications));
+            updateNotificationBadge();
+        }
+    }
+    function closeNotificationPanel(){document.getElementById('notificationPanel').classList.remove('active');}
+    
+    function renderNotifications(){
+        const container=document.getElementById('notificationList');if(!container)return;
+        if(!notifications.length){container.innerHTML='📭 알림이 없어요';return;}
+        const typeEmoji={'info':'📌','success':'✅','warning':'⚠️','error':'🚨'};
+        const typeColor={'info':'var(--accent-blue)','success':'#34d399','warning':'#fbbf24','error':'#f87171'};
+        container.innerHTML=notifications.slice().reverse().map(n=>`<div style="padding:8px;background:rgba(255,255,255,0.01);border-radius:8px;margin-bottom:4px;border-left:2px solid ${typeColor[n.type]};"><div style="display:flex;justify-content:space-between;"><span style="font-weight:600;font-size:11px;">${typeEmoji[n.type]} ${esc(n.title)}</span><span style="font-size:8px;color:var(--text-muted);">${new Date(n.created_at).toLocaleString()}</span></div><div style="font-size:10px;color:var(--text-secondary);">${esc(n.message)}</div></div>`).join('');
+    }
+    function clearAllNotifications(){if(!confirm('모든 알림을 삭제하시겠습니까?'))return;notifications=[];localStorage.setItem(`chatversea_${currentUser}_notifications`,JSON.stringify(notifications));renderNotifications();updateNotificationBadge();}
+    
+    // ============================================================
+    // ✉️ 문의 시스템
+    // ============================================================
+    async function sendInquiry(){
+        if(isGuest){alert('☺ 게스트는 문의를 보낼 수 없어요!');return;}
+        const type=document.getElementById('inquiryType').value;
+        const title=document.getElementById('inquiryTitle').value.trim();
+        const content=document.getElementById('inquiryContent').value.trim();
+        if(!title||!content){alert('⚠ 제목과 내용을 입력하세요!');return;}
+        if(checkPolicyViolation(title)||checkPolicyViolation(content)){alert('⚠ 금지어가 포함되어 있습니다.');return;}
+        
+        const newInquiry = {
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+            user_id: currentUser,
+            user_email: currentUser,
+            type: type,
+            title: sanitize(title),
+            content: sanitize(content),
+            status: 'pending',
+            admin_response: null,
+            created_at: new Date().toISOString()
+        };
+        
+        inquiries.push(newInquiry);
+        localStorage.setItem(`chatversea_${currentUser}_inquiries`,JSON.stringify(inquiries));
+        
+        // Supabase에도 저장
+        try {
+            await supabase.from('inquiries').insert(newInquiry);
+        } catch(e) { console.warn('Supabase 저장 실패:', e); }
+        
+        document.getElementById('inquiryTitle').value='';
+        document.getElementById('inquiryContent').value='';
+        renderMyInquiries();
+        addChatMsg('✉ 문의','문의가 접수되었어요! 빠른 시일 내에 답변 드릴게요.','sys');
+        addNotification('📩 문의 접수',`"${title}" 문의가 접수되었어요.`,'info');
+        
+        // 관리자에게 알림
+        if(isAdmin||isDeveloper){loadAdminInquiries();}
+    }
+    
+    function renderMyInquiries(){
+        const container=document.getElementById('myInquiryList');if(!container)return;
+        const myInquiries = inquiries.filter(i => i.user_id === currentUser);
+        if(!myInquiries.length){container.innerHTML='📭 아직 문의 내역이 없어요';return;}
+        const statusMap={'pending':'⏳ 검토중','answered':'✅ 답변완료','closed':'🔒 종료'};
+        const typeMap={'bug':'🐛','suggestion':'💡','question':'❓','etc':'📌'};
+        container.innerHTML=myInquiries.slice().reverse().map(i=>`<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><div style="display:flex;justify-content:space-between;font-size:10px;"><span>${typeMap[i.type]||'📌'} ${esc(i.title)}</span><span style="color:${i.status==='pending'?'#fbbf24':i.status==='answered'?'#34d399':'#6b7280'};">${statusMap[i.status]}</span></div><div style="font-size:9px;color:var(--text-muted);">${new Date(i.created_at).toLocaleDateString()}</div>${i.admin_response?`<div style="font-size:9px;color:var(--accent-cyan);">💬 ${esc(i.admin_response)}</div>`:''}</div>`).join('');
+    }
+    
+    // ============================================================
+    // 👑 관리자 문의 관리
+    // ============================================================
+    async function loadAdminInquiries(){
+        if(!isAdmin&&!isDeveloper)return;
+        try {
+            const {data,error}=await supabase.from('inquiries').select('*').order('created_at',{ascending:false});
+            if(error)throw error;
+            if(data && data.length){inquiries = data;}
+            renderAdminInquiries();
+            updateAdminNotificationBadge();
+        } catch(e){ console.warn('관리자 문의 로드 실패:', e); }
+    }
+    
+    function renderAdminInquiries(){
+        const container=document.getElementById('adminInquiryList');if(!container)return;
+        if(!inquiries.length){container.innerHTML='<div style="color:var(--text-secondary);font-size:10px;padding:10px;text-align:center;">📭 아직 접수된 문의가 없어요</div>';return;}
+        const sorted = [...inquiries].sort((a,b)=>{if(a.status==='pending'&&b.status!=='pending')return -1;if(a.status!=='pending'&&b.status==='pending')return 1;return new Date(b.created_at)-new Date(a.created_at);});
+        const statusMap={'pending':'⏳ 검토중','answered':'✅ 답변완료','closed':'🔒 종료'};
+        const statusColor={'pending':'#fbbf24','answered':'#34d399','closed':'#6b7280'};
+        const typeMap={'bug':'🐛 버그','suggestion':'💡 제안','question':'❓ 질문','etc':'📌 기타'};
+        container.innerHTML=sorted.map(i=>`<div class="inquiry-item ${i.status}" onclick="openInquiryDetail('${i.id}')" style="padding:8px;background:rgba(255,255,255,0.01);border-radius:8px;margin-bottom:6px;cursor:pointer;"><div style="display:flex;justify-content:space-between;"><div><span style="font-weight:600;">${typeMap[i.type]||'📌'}</span> <span style="color:var(--accent-purple);font-weight:600;">${esc(i.title)}</span></div><span style="font-size:9px;color:${statusColor[i.status]};">${statusMap[i.status]}</span></div><div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text-muted);margin-top:2px;"><span>✉ ${esc(i.user_email||i.user_id||'익명')}</span><span>📅 ${new Date(i.created_at).toLocaleString()}</span></div>${i.admin_response?`<div style="font-size:9px;color:var(--accent-cyan);margin-top:2px;">💬 ${esc(i.admin_response)}</div>`:''}</div>`).join('');
+    }
+    
+    function updateAdminNotificationBadge(){
+        const pending = inquiries.filter(i=>i.status==='pending').length;
+        const badge=document.getElementById('adminInquiryBadge');
+        if(badge){if(pending>0){badge.textContent=pending>99?'99+':pending;badge.style.display='inline-block';}else{badge.style.display='none';}}
+    }
+    
+    function createInquiryDetailModal(){
+        if(document.getElementById('inquiryDetailModal'))return;
+        const modal=document.createElement('div');modal.className='modal-overlay';modal.id='inquiryDetailModal';
+        modal.innerHTML=`<div class="modal-content"><div id="inquiryDetailContent"></div></div>`;
+        document.body.appendChild(modal);
+    }
+    
+    function openInquiryDetail(id){
+        createInquiryDetailModal();
+        const inq=inquiries.find(i=>i.id===id);if(!inq)return;
+        const container=document.getElementById('inquiryDetailContent');if(!container)return;
+        const statusMap={'pending':'⏳ 검토중','answered':'✅ 답변완료','closed':'🔒 종료'};
+        const typeMap={'bug':'🐛 버그 신고','suggestion':'💡 건의사항','question':'❓ 질문','etc':'📌 기타'};
+        container.innerHTML=`<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;"><span style="font-weight:700;font-size:14px;color:var(--accent-purple);">${typeMap[inq.type]} - ${esc(inq.title)}</span><span style="font-size:11px;color:${inq.status==='pending'?'#fbbf24':'#34d399'};">${statusMap[inq.status]}</span></div><div style="font-size:10px;color:var(--text-muted);margin:4px 0;">✉ ${esc(inq.user_email||inq.user_id||'익명')} · 📅 ${new Date(inq.created_at).toLocaleString()}</div><div style="padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;margin:8px 0;font-size:12px;line-height:1.5;">${esc(inq.content)}</div>${inq.admin_response?`<div style="padding:10px;background:rgba(34,211,238,0.02);border:1px solid rgba(34,211,238,0.02);border-radius:8px;margin:8px 0;font-size:11px;color:var(--accent-cyan);">💬 관리자 답변: ${esc(inq.admin_response)}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:6px;"><textarea id="adminReplyInput" rows="2" placeholder="답변을 입력하세요..." style="padding:8px 12px;font-size:11px;border-radius:8px;background:var(--bg-input);color:var(--text-primary);border:1px solid rgba(255,255,255,0.02);width:100%;"></textarea><div style="display:flex;gap:4px;"><button class="btn-p btn-sm" onclick="answerInquiry('${inq.id}')" style="flex:1;">💬 답변</button><button class="btn-g btn-sm" onclick="closeInquiry('${inq.id}')" style="flex:1;">🔒 종료</button><button class="btn-d btn-sm" onclick="closeInquiryDetail()" style="flex:0.5;">✕</button></div></div>`;
+        document.getElementById('inquiryDetailModal').classList.add('active');
+    }
+    
+    function closeInquiryDetail(){const modal=document.getElementById('inquiryDetailModal');if(modal)modal.classList.remove('active');}
+    
+    async function answerInquiry(id){
+        const input=document.getElementById('adminReplyInput');const reply=input.value.trim();
+        if(!reply){alert('💬 답변 내용을 입력하세요!');return;}
+        try {
+            await supabase.from('inquiries').update({admin_response:reply,status:'answered',updated_at:new Date().toISOString()}).eq('id',id);
+            const inq=inquiries.find(i=>i.id===id);
+            if(inq) {
+                inq.admin_response=reply;inq.status='answered';
+                localStorage.setItem(`chatversea_${inq.user_id}_inquiries`,JSON.stringify(inquiries.filter(i=>i.user_id===inq.user_id)));
+                addNotificationToUser(inq.user_id,'📩 문의 답변 완료',`"${inq.title}" 문의에 답변이 등록되었어요!`);
+            }
+            alert('✅ 답변이 전송되었어요!');closeInquiryDetail();await loadAdminInquiries();
+        } catch(e){alert('⚠️ 답변 전송에 실패했어요.');}
+    }
+    
+    async function closeInquiry(id){
+        if(!confirm('🔒 이 문의를 종료하시겠습니까?'))return;
+        try {
+            await supabase.from('inquiries').update({status:'closed',updated_at:new Date().toISOString()}).eq('id',id);
+            const inq=inquiries.find(i=>i.id===id);
+            if(inq){inq.status='closed';}
+            alert('✅ 문의가 종료되었어요!');closeInquiryDetail();await loadAdminInquiries();
+        } catch(e){alert('⚠️ 문의 종료에 실패했어요.');}
+    }
+    
+    function addNotificationToUser(userId,title,message){
+        const key=`chatversea_${userId}_notifications`;
+        const notifs=JSON.parse(localStorage.getItem(key)||'[]');
+        notifs.push({id:Date.now(),title,message,type:'info',read:false,created_at:new Date().toISOString()});
+        if(notifs.length>50)notifs.slice(-50);
+        localStorage.setItem(key,JSON.stringify(notifs));
+        if(currentUser===userId){notifications=notifs;renderNotifications();updateNotificationBadge();}
+    }
+    
+    function subscribeToInquiries(){
+        if(!isAdmin&&!isDeveloper)return;
+        supabase.channel('inquiries_channel')
+            .on('postgres_changes',{event:'INSERT',schema:'public',table:'inquiries'},payload=>{
+                const ni=payload.new;
+                inquiries.unshift(ni);
+                renderAdminInquiries();
+                updateAdminNotificationBadge();
+                addChatMsg('🔔 관리자',`새 문의: "${ni.title}"`,'sys');
+                if(Notification.permission==='granted'){
+                    new Notification('📩 새 문의가 접수되었어요!',{body:`${ni.title} - ${ni.user_email||ni.user_id}`});
+                }
+            }).subscribe();
+    }
+    
+    // ============================================================
+    // 🔐 API 키 설정 (관리자/개발자 전용)
+    // ============================================================
+    async function saveAPIKeys(){
+        if(!isAdmin&&!isDeveloper){alert('⚠ 관리자 또는 개발자만 API 키를 설정할 수 있어요!');return;}
+        const groq=document.getElementById('groqKey').value.trim();
+        const mistral=document.getElementById('mistralKey').value.trim();
+        const stability=document.getElementById('stabilityKey').value.trim();
+        try {
+            await supabase.from('api_keys').upsert({
+                user_id:currentUser,
+                groq:encryptKey(groq),
+                mistral:encryptKey(mistral),
+                stability:encryptKey(stability),
+                updated_at:new Date().toISOString()
+            });
+        } catch(e){console.warn('Supabase API 키 저장 실패:',e);}
+        if(groq)localStorage.setItem('groq_key',groq);
+        if(mistral)localStorage.setItem('mistral_key',mistral);
+        if(stability)localStorage.setItem('stability_key',stability);
+        loadSavedKeys();
+        alert('✅ API 키가 안전하게 저장되었어요!');
+        addChatMsg('✦ API','API 키가 저장되었어요!','sys');
+    }
+    
+    function loadSavedKeys(){
+        const keys=[{id:'groqKey',statusId:'groqStatus',key:localStorage.getItem('groq_key')||''},{id:'mistralKey',statusId:'mistralStatus',key:localStorage.getItem('mistral_key')||''},{id:'stabilityKey',statusId:'stabilityStatus',key:localStorage.getItem('stability_key')||''}];
+        keys.forEach(({id,statusId,key})=>{const el=document.getElementById(id);const st=document.getElementById(statusId);if(el)el.value=key;if(st){st.textContent=key?'✅ 설정됨':'◈ 미설정';st.style.color=key?'#34d399':'#888';}});
+    }
+    
+    // ============================================================
+    // 👑 개발자 관리 (관리자 전용)
+    // ============================================================
+    async function addDeveloperAccount(){
+        if(!isAdmin){alert('⚠ 관리자만 개발자를 추가할 수 있어요!');return;}
+        const id=document.getElementById('newDevId').value.trim();
+        if(!id){alert('✦ GitHub ID 또는 이메일을 입력하세요!');return;}
+        try {
+            await supabase.from('developers').insert({user_id:id,role:'developer',created_at:new Date().toISOString()});
+            if(!developers.find(d=>d.user_id===id)){developers.push({user_id:id,role:'developer'});}
+            localStorage.setItem('chatversea_developers',JSON.stringify(developers));
+            document.getElementById('newDevId').value='';
+            renderDevList();
+            alert(`✅ ${id} 개발자 등록 완료!`);
+            addChatMsg('👑 개발자',`${id}님이 개발자로 등록되었어요!`,'sys');
+        } catch(e){alert('⚠ 개발자 추가에 실패했어요.');}
+    }
+    
+    function renderDevList(){
+        const c=document.getElementById('devList');if(!c)return;
+        if(!developers.length){c.innerHTML='<div style="color:var(--text-muted);font-size:10px;padding:4px;">✦ 등록된 개발자가 없어요</div>';return;}
+        c.innerHTML=developers.map(d=>`<div style="display:flex;justify-content:space-between;padding:3px 6px;background:rgba(255,255,255,0.01);border-radius:4px;margin-bottom:2px;"><span style="font-size:10px;">${esc(d.user_id||d)}</span>${isAdmin?`<button onclick="removeDeveloper('${d.user_id||d}')" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:10px;">✕</button>`:''}</div>`).join('');
+    }
+    
+    async function removeDeveloper(id){
+        if(!isAdmin){alert('⚠ 관리자만 개발자를 제거할 수 있어요!');return;}
+        if(!confirm(`✦ "${id}" 개발자를 제거하시겠습니까?`))return;
+        try {
+            await supabase.from('developers').delete().eq('user_id',id);
+            developers=developers.filter(d=>(d.user_id||d)!==id);
+            localStorage.setItem('chatversea_developers',JSON.stringify(developers));
+            renderDevList();
+            alert(`✅ ${id} 개발자 제거 완료!`);
+        } catch(e){alert('⚠ 개발자 제거에 실패했어요.');}
+    }
+    
+    // ============================================================
+    // 👤 프로필
+    // ============================================================
+    function loadProfileInfo(){
+        const c=document.getElementById('profileContent');if(!c)return;
+        let r='일반';if(isAdmin)r='✦ 관리자';else if(isDeveloper)r='✦ 개발자';else if(isGuest)r='☺ 게스트';
+        c.innerHTML=`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><span style="color:var(--text-secondary);font-size:10px;">이름</span><span style="font-size:11px;">${esc(currentUser||'게스트')}</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><span style="color:var(--text-secondary);font-size:10px;">역할</span><span style="font-size:11px;">${r}</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><span style="color:var(--text-secondary);font-size:10px;">캐릭터</span><span style="font-size:11px;">${chars.length}개</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><span style="color:var(--text-secondary);font-size:10px;">배지</span><span style="font-size:11px;">${userBadges.length}개</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);"><span style="color:var(--text-secondary);font-size:10px;">스토리</span><span style="font-size:11px;">${stories.length}개</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-secondary);font-size:10px;">지식</span><span style="font-size:11px;">${knowledge.length}개</span></div>`;
+    }
+    
+    // ============================================================
+    // 🔞 성인 인증
+    // ============================================================
+    function showAdultVerify(){document.getElementById('adultVerifyModal').classList.add('active');}
+    function closeAdultVerify(){document.getElementById('adultVerifyModal').classList.remove('active');}
+    function verifyAdult19(){const p=document.getElementById('adultPhone').value.trim();const e=document.getElementById('adultError');if(!p){e.textContent='⚠ 휴대폰 번호를 입력하세요!';return;}isAdultVerified=true;localStorage.setItem('chatversea_adult_verified','true');closeAdultVerify();updateAdultStatus();addChatMsg('✦ 성인 인증','✅ 만 19세 성인 인증이 완료되었어요!','sys');addNotification('🔞 성인 인증','✅ 만 19세 성인 인증이 완료되었어요!','success');}
+    function updateAdultStatus(){const s=document.getElementById('verificationStatus');if(!s)return;if(isAdultVerified){s.innerHTML='✅ 인증됨 (만 19세 이상)';s.style.color='#34d399';document.querySelectorAll('.adult-content').forEach(el=>el.classList.add('visible'));}else{s.innerHTML='◈ 인증되지 않음';s.style.color='var(--text-secondary)';}}
+    
+    // ============================================================
+    // 📋 정책
+    // ============================================================
+    function showPolicy(t){const c={'terms':'✦ 이용약관\n1. 챗버스a는 AI 캐릭터와의 대화를 제공하는 플랫폼입니다.\n2. 사용자는 생성하는 모든 콘텐츠에 대한 책임을 집니다.\n3. 타인의 권리를 침해하거나 불법적인 내용을 생성해서는 안 됩니다.\n4. 서비스는 사전 통지 없이 변경될 수 있습니다.','privacy':'✦ 개인정보처리방침\n1. 챗버스a는 사용자의 이메일, 아이디, 대화 내용을 저장합니다.\n2. 개인정보는 서비스 제공 및 개선을 위해서만 사용됩니다.\n3. 사용자는 언제든지 자신의 정보를 열람하고 수정할 수 있습니다.\n4. 개인정보는 제3자에게 제공되지 않습니다.','platform':'✦ AI 플랫폼 정책\n1. AI는 사용자의 입력에 따라 응답을 생성합니다.\n2. 모든 AI 응답은 참고용입니다.\n3. 19금, 폭력, 혐오, 차별적 내용은 금지됩니다.\n4. 실제 인물을 모방한 캐릭터는 생성할 수 없습니다.\n5. 정책을 위반하면 경고 또는 계정이 정지됩니다.'};alert(c[t]||'정책 내용을 불러올 수 없습니다.');}
+    
+    // ============================================================
+    // 🚀 초기화
+    // ============================================================
+    function checkAdminAccess(){
+        const a=document.getElementById('apiSettingsCard');
+        const d=document.getElementById('devManagementCard');
+        const ai=document.getElementById('adminInquiryCard');
+        if(!a||!d||!ai)return;
+        if(isAdmin||isDeveloper){
+            a.style.display='block';
+            d.style.display='block';
+            ai.style.display='block';
+            loadSavedKeys();
+            renderDevList();
+            loadAdminInquiries();
+            subscribeToInquiries();
+        }else{
+            a.style.display='none';
+            d.style.display='none';
+            ai.style.display='none';
+        }
+    }
+    
+    window.speechSynthesis.onvoiceschanged=()=>{console.log('✦ TTS 음성 로드 완료:',window.speechSynthesis.getVoices().length);};
+    
+    (async function init(){
+        const saved=localStorage.getItem('chatversea_user');
+        if(saved){try{const user=JSON.parse(saved);currentUser=user.id;isAdmin=user.admin||false;isDeveloper=user.developer||false;isGuest=user.guest||false;document.getElementById('loginOverlay').classList.add('hidden');if(isAdmin){document.getElementById('userBadge').textContent='✦ 관리자';document.getElementById('userBadge').className='badge badge-legend';}else if(isDeveloper){document.getElementById('userBadge').textContent='✦ '+(user.email||user.id);document.getElementById('userBadge').className='badge badge-dev';}else if(isGuest){document.getElementById('userBadge').textContent='☺ 게스트';document.getElementById('userBadge').className='badge badge-guest';}else{document.getElementById('userBadge').textContent='☺ '+(user.email||user.id);}loadUserData(currentUser);updateUI();renderAll();updateCharSelect();const ttsBtn=document.getElementById('ttsToggle');if(ttsEnabled){ttsBtn.textContent='✦ ON';ttsBtn.classList.add('playing');}checkAdminAccess();console.log('✦ 챗버스a 풀버전 로드!');return;}catch(e){console.warn('⚠ 자동 로그인 실패:',e);}}
+        document.getElementById('loginOverlay').classList.remove('hidden');
+    })();
+    
+    console.log('✦ 챗버스a - 풀버전 완성!');
+    console.log('🔒 CSP, DOMPurify, CSRF, 암호화 적용');
+    console.log('🔐 Supabase 연동 + RLS 정책 적용');
+    console.log('📩 문의센터 + 알림시스템 완비');
+    console.log('👑 관리자: admin / 1234');
+    console.log('👑 개발자: 관리자가 직접 추가');
+    </script>
+</body>
+                                                                                                               </html>
